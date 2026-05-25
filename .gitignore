@@ -22,6 +22,7 @@ Thumbs.db
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -33,6 +34,7 @@ Thumbs.db
 *.mdb
 *.opendb
 *.VC.db
+*.lscache
 
 sysinfo.txt
 
