@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Blue Book
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Blue Book
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 5895406457481091740, guid: d791993f466ef2a41a06a216cae26585, type: 3}
+  image: {fileID: 21300000, guid: 38a7a2eeeb66fdb44beefae5f1f47e07, type: 3}
+  imageR90: {fileID: 21300000, guid: 6b1f3bfa59b9ef243b0a8474a72fd84a, type: 3}
+  imageR180: {fileID: 21300000, guid: 2f935603d0cfe634f82655b355e970cb, type: 3}
+  imageR270: {fileID: 21300000, guid: b359ada5cb97bd14d84527dcaedd225b, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 1
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 8ced7349f51ebf049ae1cf8e97846f3e, type: 2}
+    amount: 1

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbe138bc76cac4f458c0801a40341c0f, type: 3}
+  m_Name: Test Offer
+  m_EditorClassIdentifier: Assembly-CSharp::MerchantOfferData
+  offerId: Test_Offer_One
+  offerTitle: Test Offer
+  description: I'm offering this thing I think
+  utilityItem: {fileID: 11400000, guid: 89f5c376df7bb7f4ca7d018861d6b2fd, type: 2}
+  price: 25

@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf88ab41cb364f645bda1c31d6af1859, type: 3}
+  m_Name: Talking test one
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueEncounterData
+  npcName: Jerry
+  encounterId: Talking_test_Uno
+  encounterTitle: Test One
+  openingLine: Hello I would Like to find Tom. Have you seen him around.
+  choices:
+  - playerReply: Nope.
+    npcResponse: Fuck you Then!
+    rewardMoney: 0
+    givesInfo: 0
+    infoText: 
+  - playerReply: No but why do you ask
+    npcResponse: He's been lost and think He might be dead.
+    rewardMoney: 0
+    givesInfo: 1
+    infoText: 'Here, this is the last location I have seen him at. '
+  - playerReply: Who is Tom?
+    npcResponse: Bye.
+    rewardMoney: 0
+    givesInfo: 0
+    infoText: 
+  - playerReply: Yea he should be at the storage.
+    npcResponse: Thanks. This is for you.
+    rewardMoney: 15
+    givesInfo: 0
+    infoText: 

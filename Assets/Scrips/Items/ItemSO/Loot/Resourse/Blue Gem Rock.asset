@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Blue Gem Rock
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Blue Gem Rock
+  type: 0
+  rarity: 2
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 7350981094700398076, guid: 999fdd1840dac944aa739360db4aa6fc, type: 3}
+  image: {fileID: 21300000, guid: 45706f756797afc468e961ab24134fcb, type: 3}
+  imageR90: {fileID: 21300000, guid: dc41bb08dac07d544b6fd10609f1ff0b, type: 3}
+  imageR180: {fileID: 21300000, guid: 46050d41eecd12145aa6141c5cefc641, type: 3}
+  imageR270: {fileID: 21300000, guid: 1107e29aa156bef45bf6b9ccc0c79cc7, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 2
+  sizeHeight: 3
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 67ac88c94060894408fef649766bf307, type: 2}
+    amount: 4
+  - material: {fileID: 11400000, guid: 04a43df292981524ebf973d114bf23fb, type: 2}
+    amount: 2

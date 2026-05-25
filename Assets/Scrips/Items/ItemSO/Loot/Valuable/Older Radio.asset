@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Older Radio
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Older Radio
+  type: 0
+  rarity: 1
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 4060359638336875953, guid: 6f5d518947edf3241806b365b597ea7c, type: 3}
+  image: {fileID: 21300000, guid: ebc8012c10b341d4895c97602b2f9d85, type: 3}
+  imageR90: {fileID: 21300000, guid: d3252276a949e544aa1bb78acaeba447, type: 3}
+  imageR180: {fileID: 21300000, guid: 466eed5ad00461c4abaf600489be0a22, type: 3}
+  imageR270: {fileID: 21300000, guid: 5469eaded06ad374fa5d0b0309f53c95, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 2
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 09c15c1f93ced8c4691e9c9e866c74e9, type: 2}
+    amount: 2
+  - material: {fileID: 11400000, guid: e3dc10647b73064488cad17d57e82dfe, type: 2}
+    amount: 2

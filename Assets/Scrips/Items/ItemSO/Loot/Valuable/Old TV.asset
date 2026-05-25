@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Old TV
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Old TV
+  type: 0
+  rarity: 1
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 5334288911723450796, guid: ef86096fcc79a434fb24e01c845c4670, type: 3}
+  image: {fileID: 21300000, guid: c04a7da03b1af814b8fc9109e1523247, type: 3}
+  imageR90: {fileID: 21300000, guid: a7a6c25a4ea3e8c43adf729ad2583f7e, type: 3}
+  imageR180: {fileID: 21300000, guid: 1806f466b42657f409c2ce3204808ab8, type: 3}
+  imageR270: {fileID: 21300000, guid: d08779e065137fa409c8241fe875a63e, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 3
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 57dba7716cc78cf45b7db9a4201c1635, type: 2}
+    amount: 2
+  - material: {fileID: 11400000, guid: 09c15c1f93ced8c4691e9c9e866c74e9, type: 2}
+    amount: 2
+  - material: {fileID: 11400000, guid: f650a3cf1e0a2a94293778aed61dd604, type: 2}
+    amount: 2

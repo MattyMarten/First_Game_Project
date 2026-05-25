@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Yellow Gem Rock
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Yellow Gem Rock
+  type: 0
+  rarity: 2
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 6541782343605476915, guid: 6cb2dad7a55372b4d98ff64fb9e32794, type: 3}
+  image: {fileID: 21300000, guid: 6214bf8828080a840b0fb4847831d20c, type: 3}
+  imageR90: {fileID: 21300000, guid: 0217b125b3ce8b546afb43ec9694a5d1, type: 3}
+  imageR180: {fileID: 21300000, guid: 16ee4a8cd349ee84aa93f1c15d690f26, type: 3}
+  imageR270: {fileID: 21300000, guid: d7ed6661019ea6e4687097c182ffe6bb, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 2
+  sizeHeight: 3
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 7ca3e64dab04481409d512c356308481, type: 2}
+    amount: 4
+  - material: {fileID: 11400000, guid: 04a43df292981524ebf973d114bf23fb, type: 2}
+    amount: 2

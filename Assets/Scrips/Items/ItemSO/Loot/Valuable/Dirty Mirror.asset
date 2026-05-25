@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Dirty Mirror
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Dirty Mirror
+  type: 0
+  rarity: 1
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 6332598013466915530, guid: e94e23aa96d5d3a459d39962e1086be2, type: 3}
+  image: {fileID: 21300000, guid: 1a32ab0306cdae94db0ba409f770ac00, type: 3}
+  imageR90: {fileID: 21300000, guid: 682815451dfc5314cbacec1fbdca3ad5, type: 3}
+  imageR180: {fileID: 21300000, guid: 73decbbadd9927c41a01b93a4c0d3d14, type: 3}
+  imageR270: {fileID: 21300000, guid: 2b0723d0ceda7364d9527ac1f7e2605b, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 3
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 09c15c1f93ced8c4691e9c9e866c74e9, type: 2}
+    amount: 1
+  - material: {fileID: 11400000, guid: 04a43df292981524ebf973d114bf23fb, type: 2}
+    amount: 1
+  - material: {fileID: 11400000, guid: e3dc10647b73064488cad17d57e82dfe, type: 2}
+    amount: 1

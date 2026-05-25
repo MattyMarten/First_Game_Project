@@ -1,0 +1,436 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class ShopManager : MonoBehaviour
+{
+    // Handles Desk 1 shop sales, buyer flow, checkout queue, and shop money.
+
+    [Header("Shop State")]
+    [SerializeField] private bool shopOpen;
+    [SerializeField] private int currentMoney;
+
+    [Header("Registered Displays")]
+    [SerializeField] private List<DisplayStand> registeredDisplays = new();
+
+    [Header("Stored Goods")]
+    [SerializeField] private GoodStorage goodStorage;
+
+    [Header("Desk")]
+    [SerializeField] private ShopDeskVisuals shopDeskVisuals;
+
+    [Header("Browse Points")]
+    [SerializeField] private List<ShopBrowsePoint> browsePoints = new();
+
+    [Header("Shop Capacity")]
+    [SerializeField] private int shopCapacity = 4;
+
+    [Header("Queue Spots")]
+    [SerializeField] private List<ShopQueueSpot> queueSpots = new();
+
+    private readonly List<ShopBuyerNPC> activeBuyers = new();
+
+    private ShopBuyerNPC pendingBuyer;
+    private CraftingGood pendingGood;
+    private int pendingPrice;
+
+    private string pendingBuyerName;
+    private string pendingBuyerDialogue;
+
+    public bool IsShopOpen => shopOpen;
+    public int CurrentMoney => currentMoney;
+
+    public bool HasPendingSale => pendingBuyer != null && pendingGood != null;
+    public bool IsInteractionActive => HasPendingSale;
+    public CraftingGood PendingGood => pendingGood;
+    public int PendingPrice => pendingPrice;
+    public string PendingBuyerName => pendingBuyerName;
+    public string PendingBuyerDialogue => pendingBuyerDialogue;
+    public event System.Action OnPendingSaleChanged;
+    public event System.Action OnMoneyChanged;
+
+    public int ShopCapacity => shopCapacity;
+    public int ActiveBuyerCount => activeBuyers.Count;
+
+    private readonly List<ShopBuyerNPC> checkoutQueue = new();
+    private ShopBuyerNPC deskAssignedBuyer;
+
+    public bool IsDeskAssigned => deskAssignedBuyer != null;
+    public int CheckoutQueueCount => checkoutQueue.Count;
+
+
+
+    private void Awake()
+    {
+        if (goodStorage == null)
+            goodStorage = FindAnyObjectByType<GoodStorage>();
+
+        if (shopDeskVisuals == null)
+            shopDeskVisuals = FindAnyObjectByType<ShopDeskVisuals>();
+    }
+
+    public void OpenShop()
+    {
+        shopOpen = true;
+        Debug.Log("Shop opened.");
+    }
+
+    public void CloseShop()
+    {
+        shopOpen = false;
+        Debug.Log("Shop closed.");
+    }
+
+    public void AddMoney(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        currentMoney += amount;
+        OnMoneyChanged?.Invoke();
+
+        Debug.Log($"Shop earned {amount}. Total money: {currentMoney}");
+    }
+
+    public bool SpendMoney(int amount)
+    {
+        if (amount <= 0)
+            return false;
+
+        if (currentMoney < amount)
+            return false;
+
+        currentMoney -= amount;
+        OnMoneyChanged?.Invoke();
+        return true;
+    }
+
+    public void RegisterDisplay(DisplayStand display)
+    {
+        if (display == null)
+            return;
+
+        if (!registeredDisplays.Contains(display))
+            registeredDisplays.Add(display);
+    }
+
+    public void UnregisterDisplay(DisplayStand display)
+    {
+        if (display == null)
+            return;
+
+        if (registeredDisplays.Contains(display))
+            registeredDisplays.Remove(display);
+    }
+
+    public List<DisplayStand> GetRegisteredDisplays()
+    {
+        return new List<DisplayStand>(registeredDisplays);
+    }
+
+    public bool HasAnyItemsForSale()
+    {
+        for (int i = 0; i < registeredDisplays.Count; i++)
+        {
+            DisplayStand display = registeredDisplays[i];
+
+            if (display != null && display.HasAnyItemsForSale())
+                return true;
+        }
+
+        return false;
+    }
+
+    public DisplayStand GetRandomDisplayWithItemsForSale()
+    {
+        List<DisplayStand> validDisplays = new();
+
+        for (int i = 0; i < registeredDisplays.Count; i++)
+        {
+            DisplayStand display = registeredDisplays[i];
+
+            if (display != null && display.HasAnyUnreservedItemsForSale())
+                validDisplays.Add(display);
+        }
+
+        if (validDisplays.Count == 0)
+            return null;
+
+        int randomIndex = Random.Range(0, validDisplays.Count);
+        return validDisplays[randomIndex];
+    }
+
+    public bool TryCreatePendingSale(ShopBuyerNPC buyer, CraftingGood good, int price)
+    {
+        if (buyer == null || good == null)
+            return false;
+
+        if (HasPendingSale)
+            return false;
+
+        pendingBuyer = buyer;
+        pendingGood = good;
+        pendingPrice = price;
+        pendingBuyerName = buyer.GetBuyerName();
+        pendingBuyerDialogue = buyer.GetBuyerDialogue();    
+
+        if (shopDeskVisuals != null)
+            shopDeskVisuals.ShowPendingItem(good);
+
+        OnPendingSaleChanged?.Invoke();
+
+        Debug.Log($"Pending sale created: {good.goodName} for {price}.");
+        return true;
+    }
+
+    public void AcceptPendingSale()
+    {
+        if (!HasPendingSale)
+            return;
+
+        AddMoney(pendingPrice);
+
+        Debug.Log($"Sale accepted: {pendingGood.goodName} sold for {pendingPrice}.");
+
+        ShopBuyerNPC buyer = pendingBuyer;
+
+        ClearPendingSale();
+
+        if (buyer != null)
+            buyer.OnSaleAccepted();
+    }
+
+    public void DeclinePendingSale()
+    {
+        if (!HasPendingSale)
+            return;
+
+        if (goodStorage != null)
+        {
+            goodStorage.Add(pendingGood, 1);
+            Debug.Log($"{pendingGood.goodName} has been put in storage.");
+        }
+        else
+        {
+            Debug.LogWarning($"ShopManager: No GoodStorage assigned. {pendingGood.goodName} could not be stored.", this);
+        }
+
+        ShopBuyerNPC buyer = pendingBuyer;
+
+        ClearPendingSale();
+
+        if (buyer != null)
+            buyer.OnSaleDeclined();
+    }
+
+    private void ClearPendingSale()
+    {
+        if (shopDeskVisuals != null)
+            shopDeskVisuals.ClearPendingItem();
+
+        pendingBuyer = null;
+        pendingGood = null;
+        pendingPrice = 0;
+        pendingBuyerName = string.Empty;
+        pendingBuyerDialogue = string.Empty;
+
+        OnPendingSaleChanged?.Invoke();
+    }
+
+    public void RegisterBrowsePoint(ShopBrowsePoint browsePoint)
+    {
+        if (browsePoint == null)
+            return;
+
+        if (!browsePoints.Contains(browsePoint))
+            browsePoints.Add(browsePoint);
+    }
+
+    public void UnregisterBrowsePoint(ShopBrowsePoint browsePoint)
+    {
+        if (browsePoint == null)
+            return;
+
+        if (browsePoints.Contains(browsePoint))
+            browsePoints.Remove(browsePoint);
+    }
+
+    public List<ShopBrowsePoint> GetBrowsePoints()
+    {
+        return new List<ShopBrowsePoint>(browsePoints);
+    }
+
+    public int GetTotalItemsForSale()
+    {
+        int total = 0;
+
+        for (int i = 0; i < registeredDisplays.Count; i++)
+        {
+            DisplayStand display = registeredDisplays[i];
+
+            if (display == null)
+                continue;
+
+            total += display.GetItemsForSaleCount();
+        }
+
+        return total;
+    }
+
+    public int GetMaxAllowedBuyers()
+    {
+        int itemsForSale = GetTotalItemsForSale();
+        return Mathf.Min(shopCapacity, itemsForSale);
+    }
+
+    public bool CanAcceptAnotherBuyer()
+    {
+        return activeBuyers.Count < GetMaxAllowedBuyers();
+    }
+
+    public bool TryRegisterBuyer(ShopBuyerNPC buyer)
+    {
+        if (buyer == null)
+            return false;
+
+        if (activeBuyers.Contains(buyer))
+            return false;
+
+        if (!CanAcceptAnotherBuyer())
+            return false;
+
+        activeBuyers.Add(buyer);
+        return true;
+    }
+
+    public void UnregisterBuyer(ShopBuyerNPC buyer)
+    {
+        if (buyer == null)
+            return;
+
+        activeBuyers.Remove(buyer);
+        RemoveFromCheckoutQueue(buyer);
+    }
+
+    public void RegisterQueueSpot(ShopQueueSpot queueSpot)
+    {
+        if (queueSpot == null)
+            return;
+
+        if (!queueSpots.Contains(queueSpot))
+        {
+            queueSpots.Add(queueSpot);
+            queueSpots.Sort((a, b) => a.QueueIndex.CompareTo(b.QueueIndex));
+        }
+    }
+
+    public void UnregisterQueueSpot(ShopQueueSpot queueSpot)
+    {
+        if (queueSpot == null)
+            return;
+
+        if (queueSpots.Contains(queueSpot))
+            queueSpots.Remove(queueSpot);
+    }
+
+    public List<ShopQueueSpot> GetQueueSpots()
+    {
+        return new List<ShopQueueSpot>(queueSpots);
+    }
+
+    public bool TryRequestDeskAccess(ShopBuyerNPC buyer, out int queueIndex)
+    {
+        queueIndex = -1;
+
+        if (buyer == null)
+            return false;
+
+        if (deskAssignedBuyer == buyer)
+            return true;
+
+        if (checkoutQueue.Contains(buyer))
+        {
+            queueIndex = checkoutQueue.IndexOf(buyer);
+            return false;
+        }
+
+        if (deskAssignedBuyer == null)
+        {
+            deskAssignedBuyer = buyer;
+            return true;
+        }
+
+        checkoutQueue.Add(buyer);
+        queueIndex = checkoutQueue.Count - 1;
+        NotifyQueuedBuyersToRefreshSpots();
+        return false;
+    }
+
+    public Transform GetQueueSpotTransform(int queueIndex)
+    {
+        if (queueIndex < 0 || queueIndex >= queueSpots.Count)
+            return null;
+
+        ShopQueueSpot queueSpot = queueSpots[queueIndex];
+        return queueSpot != null ? queueSpot.transform : null;
+    }
+
+    public void ReleaseDeskAccess(ShopBuyerNPC buyer)
+    {
+        if (buyer == null)
+            return;
+
+        if (deskAssignedBuyer != buyer)
+            return;
+
+        deskAssignedBuyer = null;
+
+        PromoteNextQueuedBuyer();
+    }
+
+    private void PromoteNextQueuedBuyer()
+    {
+        while (checkoutQueue.Count > 0)
+        {
+            ShopBuyerNPC nextBuyer = checkoutQueue[0];
+            checkoutQueue.RemoveAt(0);
+
+            NotifyQueuedBuyersToRefreshSpots();
+
+            if (nextBuyer == null)
+                continue;
+
+            deskAssignedBuyer = nextBuyer;
+            nextBuyer.OnDeskAccessGranted();
+            break;
+        }
+    }
+
+    public void RemoveFromCheckoutQueue(ShopBuyerNPC buyer)
+    {
+        if (buyer == null)
+            return;
+
+        bool removedFromQueue = checkoutQueue.Remove(buyer);
+
+        if (removedFromQueue)
+            NotifyQueuedBuyersToRefreshSpots();
+
+        if (deskAssignedBuyer == buyer)
+        {
+            deskAssignedBuyer = null;
+            PromoteNextQueuedBuyer();
+        }
+    }
+
+    private void NotifyQueuedBuyersToRefreshSpots()
+    {
+        for (int i = 0; i < checkoutQueue.Count; i++)
+        {
+            ShopBuyerNPC queuedBuyer = checkoutQueue[i];
+
+            if (queuedBuyer != null)
+                queuedBuyer.OnQueuePositionChanged(i);
+        }
+    }
+    
+}

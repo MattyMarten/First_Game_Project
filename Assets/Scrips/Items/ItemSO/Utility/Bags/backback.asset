@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e6ebf04e3bedda429532930cb0d395d, type: 3}
+  m_Name: backback
+  m_EditorClassIdentifier: Assembly-CSharp::UtilityCraftable
+  itemName: backback S
+  description: Holds loot
+  icon: {fileID: 21300000, guid: 7cc7aa441f5cd944d852a2d638f831e6, type: 3}
+  category: 1
+  baseMerchantPrice: 20
+  requiredMaterials:
+  - material: {fileID: 11400000, guid: c728632c1e4805d44be230d5785f9f83, type: 2}
+    amount: 2

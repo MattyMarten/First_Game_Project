@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a14a8a699420c4c45b1eac72b40126c0, type: 3}
+  m_Name: Wooden Idol
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipes
+  goodName: Wooden Idol
+  description: Just like my old student told me, even when you know how to do things
+    doesn't mean you should.
+  icon: {fileID: 21300000, guid: 7fd61d950cd11454a9d2989077c72b2b, type: 3}
+  valueGold: 10
+  goodsPrefab: {fileID: 6630074568157220067, guid: 563c359b7a11c534d9fce997da3e80c5, type: 3}
+  requiredMaterials:
+  - material: {fileID: 11400000, guid: ec376e68147cab449b4a33265770bfa6, type: 2}
+    amount: 2

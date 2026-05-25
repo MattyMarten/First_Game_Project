@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Green Book
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Green Book
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 4541175075477586829, guid: 1dcd8299667111849b09ab1877fd83d2, type: 3}
+  image: {fileID: 21300000, guid: 3ce71dbb4b4bfec42b0b351767f6f2de, type: 3}
+  imageR90: {fileID: 21300000, guid: 4fe4f2790f56f334faa3e171814cb422, type: 3}
+  imageR180: {fileID: 21300000, guid: 4c1286813189efb48be62dd6322fbe0f, type: 3}
+  imageR270: {fileID: 21300000, guid: e487bc3e684e20f40ace91f9a1e205b8, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 1
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 8ced7349f51ebf049ae1cf8e97846f3e, type: 2}
+    amount: 1

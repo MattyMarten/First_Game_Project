@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Brown Book
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Brown Book
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 216964593896351684, guid: 5168dd0d81911c145afae2d29974986d, type: 3}
+  image: {fileID: 21300000, guid: 2bbb87535dfa6864db28de63d8e06262, type: 3}
+  imageR90: {fileID: 21300000, guid: 55070b67f19e6904cbc4aa0a69bb6da4, type: 3}
+  imageR180: {fileID: 21300000, guid: dcbb3dfd04ea90b4aaa56112f1b1d90f, type: 3}
+  imageR270: {fileID: 21300000, guid: 26c7d89c63ba493459a1ccb842aaad24, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 1
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 8ced7349f51ebf049ae1cf8e97846f3e, type: 2}
+    amount: 1

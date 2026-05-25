@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Green Plant
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Green Plant
+  type: 0
+  rarity: 2
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 3629086236767507238, guid: ea961fb745e65684892d838f5aeaa8bf, type: 3}
+  image: {fileID: 21300000, guid: 30a61d8c8cb142a469e087bdac5b7cba, type: 3}
+  imageR90: {fileID: 21300000, guid: d4df6c24385319541bc21ce5a36beb55, type: 3}
+  imageR180: {fileID: 21300000, guid: 55f46d0828873f94c9706fa94940e1b7, type: 3}
+  imageR270: {fileID: 21300000, guid: ba57e30334bcc0a4faf375ec888e5997, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 1
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: dd486485b6efbed45af8a45cf7cfe47f, type: 2}
+    amount: 1

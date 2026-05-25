@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Dirty Blue Towel
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Dirty Blue Towel
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 4045466746865920986, guid: 3dd16e5a733845e46b82332d275644f6, type: 3}
+  image: {fileID: 21300000, guid: ea28772bb4af4fd46b0a461cd22dd145, type: 3}
+  imageR90: {fileID: 21300000, guid: 3f454ea1af632274984603b8d6d9e9a7, type: 3}
+  imageR180: {fileID: 21300000, guid: ff625cb2e1dd4cb4a95d24c1f57365e1, type: 3}
+  imageR270: {fileID: 21300000, guid: 9c77d378f89f1a149be9987a7a95074b, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 45db946d7e410c449a9adc54abb7cce4, type: 2}
+    amount: 2

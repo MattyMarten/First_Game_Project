@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Skull
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Skull
+  type: 0
+  rarity: 2
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 3538668556473843656, guid: ba20da59252ec1a4db613d41cb86e277, type: 3}
+  image: {fileID: 21300000, guid: c84eafc189389bf459c7dc6a950bcec3, type: 3}
+  imageR90: {fileID: 21300000, guid: 35d97e4b2f851d048b7dd527abfb5377, type: 3}
+  imageR180: {fileID: 21300000, guid: 8f9607a7ffb93864c8b2406dde47eff7, type: 3}
+  imageR270: {fileID: 21300000, guid: 3ee6338c299f1bf44a4210821eefcd74, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 6529ef27a06504540baec08e936699ba, type: 2}
+    amount: 2

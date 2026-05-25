@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a14a8a699420c4c45b1eac72b40126c0, type: 3}
+  m_Name: Magic Book
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingRecipes
+  goodName: Magic Book
+  description: Just like my old student told me, even when you know how to do things
+    doesn't mean you should.
+  icon: {fileID: 21300000, guid: afe624564158e544c8c1754dab88593c, type: 3}
+  valueGold: 10
+  goodsPrefab: {fileID: 8059713591818852687, guid: 9d6a93168a6e5d440b99b81b9b256ef7, type: 3}
+  requiredMaterials:
+  - material: {fileID: 11400000, guid: 67ac88c94060894408fef649766bf307, type: 2}
+    amount: 1
+  - material: {fileID: 11400000, guid: 7ca3e64dab04481409d512c356308481, type: 2}
+    amount: 1
+  - material: {fileID: 11400000, guid: 8ced7349f51ebf049ae1cf8e97846f3e, type: 2}
+    amount: 1

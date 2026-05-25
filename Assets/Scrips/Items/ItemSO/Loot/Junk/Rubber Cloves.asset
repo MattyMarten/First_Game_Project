@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Rubber Cloves
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Rubber Cloves
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 3668303709523394268, guid: 9ea4d8a06f460fa458dbd9f8f90f574d, type: 3}
+  image: {fileID: 21300000, guid: fa54b04016de82b4ca53ab6c4c984f79, type: 3}
+  imageR90: {fileID: 21300000, guid: 2759de8f46024774782113541e664184, type: 3}
+  imageR180: {fileID: 21300000, guid: 617bf4488d2abb845b34163b8022bc31, type: 3}
+  imageR270: {fileID: 21300000, guid: 3a4747df3e22d6048a908ebfb58ec784, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 1
+  sizeHeight: 2
+  occupiedCells: []
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 85968570610787747bf4dff418a210e3, type: 2}
+    amount: 2

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dae82dc99a87e04458a4f7bc1eceb1fc, type: 3}
+  m_Name: TestQuest
+  m_EditorClassIdentifier: Assembly-CSharp::ShopRequestData
+  npcName: Stefano
+  npcDialogue: Hey! Have you ever woundert what is the cotton candy made of? souls.
+    And I need a lot of souls to be happy. Can you bring me 10 Cotton candy?
+  requestId: Test_Quest_One
+  requestTitle: Cotton Candy Hunt
+  difficulty: 5
+  description: Hunt down 10 cotton candies and bring me their guts!!!
+  timeLimitDays: 5
+  rewardMoney: 666
+  oneTimeOnly: 1
+  minDay: 1

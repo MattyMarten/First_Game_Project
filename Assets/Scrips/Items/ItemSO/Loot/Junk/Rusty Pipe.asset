@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e4c84999fe768e4dbc7b1507142ea87, type: 3}
+  m_Name: Rusty Pipe
+  m_EditorClassIdentifier: Assembly-CSharp::Item
+  itemName: Rusty Pipe
+  type: 0
+  rarity: 0
+  heldPrefab: {fileID: 0}
+  dropPrefab: {fileID: 3039104620246363116, guid: c7a0d58b4d527b34da152d0870e2470d, type: 3}
+  image: {fileID: 21300000, guid: b5041498db1c98748b182d4357523a65, type: 3}
+  imageR90: {fileID: 21300000, guid: 76c177d81b6dd8248b53ae5c09c604f2, type: 3}
+  imageR180: {fileID: 21300000, guid: f09f7fb91e251764db28cb3de9b14a35, type: 3}
+  imageR270: {fileID: 21300000, guid: cfa5a349ccca53f4792c4954cf77fb7f, type: 3}
+  itemIcon: {fileID: 0}
+  sizeWidth: 2
+  sizeHeight: 2
+  occupiedCells:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: 1, y: 1}
+  actionType: 4
+  materialAmounts:
+  - material: {fileID: 11400000, guid: 04a43df292981524ebf973d114bf23fb, type: 2}
+    amount: 3
