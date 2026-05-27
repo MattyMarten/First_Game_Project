@@ -238,6 +238,7 @@ public class DayPhaseController : MonoBehaviour
         if (injuredIds == null || injuredIds.Count == 0 || recruitRosterManager == null)
             return;
 
+        HashSet<string> injuredSet = new HashSet<string>(injuredIds);
         List<RecruitData> roster = recruitRosterManager.GetAllHiredRecruits();
 
         for (int i = 0; i < roster.Count; i++)
@@ -247,17 +248,13 @@ public class DayPhaseController : MonoBehaviour
             if (recruit == null)
                 continue;
 
-            for (int j = 0; j < injuredIds.Count; j++)
-            {
-                if (recruit.recruitId == injuredIds[j])
-                {
-                    recruit.status = RecruitStatus.Unavailable;
-                    recruit.unavailableForDays = injuryRecoveryDays;
+            if (!injuredSet.Contains(recruit.recruitId))
+                continue;
 
-                    Debug.Log($"[DayPhaseController] {recruit.recruitName} was injured and will recover in {injuryRecoveryDays} day(s).");
-                    break;
-                }
-            }
+            recruit.status = RecruitStatus.Unavailable;
+            recruit.unavailableForDays = injuryRecoveryDays;
+
+            Debug.Log($"[DayPhaseController] {recruit.recruitName} was injured and will recover in {injuryRecoveryDays} day(s).");
         }
     }
 

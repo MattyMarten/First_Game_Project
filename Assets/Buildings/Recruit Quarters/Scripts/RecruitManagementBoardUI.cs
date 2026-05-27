@@ -39,6 +39,9 @@ public class RecruitManagementBoardUI : MonoBehaviour
 
         if (rootPanel != null)
             rootPanel.SetActive(false);
+
+        if (partyToggleButton != null)
+            partyToggleButton.onClick.AddListener(OnPartyTogglePressed);
     }
 
     private void OnEnable()
@@ -204,9 +207,6 @@ public class RecruitManagementBoardUI : MonoBehaviour
 
         if (partyToggleButtonText != null)
             partyToggleButtonText.text = inParty ? "Remove from Party" : "Add to Party";
-
-        partyToggleButton.onClick.RemoveAllListeners();
-        partyToggleButton.onClick.AddListener(OnPartyTogglePressed);
     }
 
     private void OnPartyTogglePressed()
