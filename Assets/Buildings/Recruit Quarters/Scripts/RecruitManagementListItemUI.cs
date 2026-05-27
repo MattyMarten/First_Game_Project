@@ -11,6 +11,7 @@ public class RecruitManagementListItemUI : MonoBehaviour
     [SerializeField] private TMP_Text classText;
     [SerializeField] private TMP_Text levelText;
     [SerializeField] private GameObject selectedHighlight;
+    [SerializeField] private GameObject inPartyIndicator;
 
     private RecruitData boundRecruit;
     private Action<RecruitData> onClicked;
@@ -38,6 +39,7 @@ public class RecruitManagementListItemUI : MonoBehaviour
             levelText.text = recruit != null ? $"Lv. {recruit.level}" : "-";
 
         SetSelected(selected);
+        RefreshPartyIndicator();
 
         if (button != null)
         {
@@ -50,6 +52,15 @@ public class RecruitManagementListItemUI : MonoBehaviour
     {
         if (selectedHighlight != null)
             selectedHighlight.SetActive(selected);
+    }
+
+    public void RefreshPartyIndicator()
+    {
+        if (inPartyIndicator == null)
+            return;
+
+        bool inParty = boundRecruit != null && boundRecruit.status == RecruitStatus.AssignedToParty;
+        inPartyIndicator.SetActive(inParty);
     }
 
     private void HandleClicked()

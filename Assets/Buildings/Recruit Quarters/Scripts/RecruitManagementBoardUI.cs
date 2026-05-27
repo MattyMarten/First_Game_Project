@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RecruitManagementBoardUI : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class RecruitManagementBoardUI : MonoBehaviour
     [SerializeField] private TMP_Text stealthText;
     [SerializeField] private TMP_Text senseText;
 
+    [Header("Party Assignment")]
+    [SerializeField] private Button partyToggleButton;
+    [SerializeField] private TMP_Text partyToggleButtonText;
+    [SerializeField] private TMP_Text recruitStatusText;
+
     private readonly List<RecruitManagementListItemUI> spawnedListItems = new();
 
     private RecruitData selectedRecruit;
@@ -33,18 +39,27 @@ public class RecruitManagementBoardUI : MonoBehaviour
 
         if (rootPanel != null)
             rootPanel.SetActive(false);
+
+        if (partyToggleButton != null)
+            partyToggleButton.onClick.AddListener(OnPartyTogglePressed);
     }
 
     private void OnEnable()
     {
         if (recruitRosterManager != null)
+        {
             recruitRosterManager.OnRosterChanged += HandleRosterChanged;
+            recruitRosterManager.OnPartyChanged += HandlePartyChanged;
+        }
     }
 
     private void OnDisable()
     {
         if (recruitRosterManager != null)
+        {
             recruitRosterManager.OnRosterChanged -= HandleRosterChanged;
+            recruitRosterManager.OnPartyChanged -= HandlePartyChanged;
+        }
     }
 
     public void Open()
@@ -87,6 +102,15 @@ public class RecruitManagementBoardUI : MonoBehaviour
             return;
 
         RefreshAll();
+    }
+
+    private void HandlePartyChanged()
+    {
+        if (!IsOpen)
+            return;
+
+        RefreshDetails();
+        RefreshPartyIndicators();
     }
 
     private void RefreshList(List<RecruitData> recruits)
@@ -150,6 +174,11 @@ public class RecruitManagementBoardUI : MonoBehaviour
             SetText(enduranceText, "Endurance: -");
             SetText(stealthText, "Stealth: -");
             SetText(senseText, "Sense: -");
+            SetText(recruitStatusText, string.Empty);
+
+            if (partyToggleButton != null)
+                partyToggleButton.gameObject.SetActive(false);
+
             return;
         }
 
@@ -160,6 +189,46 @@ public class RecruitManagementBoardUI : MonoBehaviour
         SetText(enduranceText, $"Endurance: {stats.endurance}");
         SetText(stealthText, $"Stealth: {stats.stealth}");
         SetText(senseText, $"Sense: {stats.sense}");
+        SetText(recruitStatusText, $"Status: {selectedRecruit.status}");
+
+        RefreshPartyButton();
+    }
+
+    private void RefreshPartyButton()
+    {
+        if (partyToggleButton == null || recruitRosterManager == null)
+            return;
+
+        bool inParty = recruitRosterManager.IsInParty(selectedRecruit);
+        bool canAdd = selectedRecruit != null && selectedRecruit.IsAvailable;
+
+        partyToggleButton.gameObject.SetActive(selectedRecruit != null);
+        partyToggleButton.interactable = inParty || canAdd;
+
+        if (partyToggleButtonText != null)
+            partyToggleButtonText.text = inParty ? "Remove from Party" : "Add to Party";
+    }
+
+    private void OnPartyTogglePressed()
+    {
+        if (selectedRecruit == null || recruitRosterManager == null)
+            return;
+
+        if (recruitRosterManager.IsInParty(selectedRecruit))
+            recruitRosterManager.RemoveFromParty(selectedRecruit);
+        else
+            recruitRosterManager.TryAddToParty(selectedRecruit);
+    }
+
+    private void RefreshPartyIndicators()
+    {
+        for (int i = 0; i < spawnedListItems.Count; i++)
+        {
+            if (spawnedListItems[i] != null)
+                spawnedListItems[i].RefreshPartyIndicator();
+        }
+
+        RefreshPartyButton();
     }
 
     private void RefreshSelectionVisuals()

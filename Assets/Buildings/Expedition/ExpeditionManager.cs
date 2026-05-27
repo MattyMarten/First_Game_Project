@@ -10,21 +10,26 @@ public class ExpeditionManager : MonoBehaviour
     [SerializeField] private List<ExpeditionDestinationData> availableDestinations = new();
 
     [Header("Selection Rules")]
-    [SerializeField] private int maxSelectedRecruits = 3;
+    [SerializeField] private int maxPartySize = 3;
 
     private ExpeditionDestinationData selectedDestination;
     private ExpeditionEntryPointData selectedEntryPoint;
     private ExpeditionSessionData currentSession;
 
-    private readonly List<RecruitData> selectedRecruits = new();
-
     public IReadOnlyList<ExpeditionDestinationData> AvailableDestinations => availableDestinations;
-    public IReadOnlyList<RecruitData> SelectedRecruits => selectedRecruits;
 
     public ExpeditionDestinationData SelectedDestination => selectedDestination;
     public ExpeditionEntryPointData SelectedEntryPoint => selectedEntryPoint;
     public ExpeditionSessionData CurrentSession => currentSession;
-    public int MaxSelectedRecruits => maxSelectedRecruits;
+    public int MaxPartySize => maxPartySize;
+
+    public IReadOnlyList<RecruitData> GetExpeditionParty()
+    {
+        if (recruitRosterManager == null)
+            return new List<RecruitData>();
+
+        return recruitRosterManager.ExpeditionParty;
+    }
 
     private void Awake()
     {
@@ -62,49 +67,18 @@ public class ExpeditionManager : MonoBehaviour
         selectedEntryPoint = entryPoint;
     }
 
-    public List<RecruitData> GetAvailableRosterRecruits()
-    {
-        if (recruitRosterManager == null)
-            return new List<RecruitData>();
-
-        return recruitRosterManager.GetAllHiredRecruits();
-    }
-
-    public bool IsRecruitSelected(RecruitData recruit)
-    {
-        if (recruit == null)
-            return false;
-
-        return selectedRecruits.Contains(recruit);
-    }
-
-    public bool ToggleRecruitSelection(RecruitData recruit)
-    {
-        if (recruit == null)
-            return false;
-
-        if (selectedRecruits.Contains(recruit))
-        {
-            selectedRecruits.Remove(recruit);
-            return true;
-        }
-
-        if (selectedRecruits.Count >= maxSelectedRecruits)
-            return false;
-
-        selectedRecruits.Add(recruit);
-        return true;
-    }
-
     public bool CanStartExpedition()
     {
         return selectedDestination != null
             && selectedEntryPoint != null
-            && selectedRecruits.Count > 0;
+            && recruitRosterManager != null
+            && recruitRosterManager.ExpeditionParty.Count > 0;
     }
 
     public ExpeditionSessionData BuildCurrentSession()
     {
+        IReadOnlyList<RecruitData> party = GetExpeditionParty();
+
         ExpeditionSessionData session = new ExpeditionSessionData
         {
             selectedDestination = selectedDestination,
@@ -112,9 +86,9 @@ public class ExpeditionManager : MonoBehaviour
             selectedMembers = new List<ExpeditionMemberData>()
         };
 
-        for (int i = 0; i < selectedRecruits.Count; i++)
+        for (int i = 0; i < party.Count; i++)
         {
-            ExpeditionMemberData memberData = ExpeditionMemberData.FromRecruit(selectedRecruits[i]);
+            ExpeditionMemberData memberData = ExpeditionMemberData.FromRecruit(party[i]);
 
             if (memberData != null)
                 session.selectedMembers.Add(memberData);
@@ -129,6 +103,8 @@ public class ExpeditionManager : MonoBehaviour
             return false;
 
         currentSession = BuildCurrentSession();
+
+        recruitRosterManager.MarkPartyOnExpedition();
 
         string destinationName = currentSession.selectedDestination != null
             ? currentSession.selectedDestination.destinationName
@@ -157,6 +133,8 @@ public class ExpeditionManager : MonoBehaviour
     {
         selectedDestination = null;
         selectedEntryPoint = null;
-        selectedRecruits.Clear();
+
+        if (recruitRosterManager != null)
+            recruitRosterManager.ClearParty();
     }
 }

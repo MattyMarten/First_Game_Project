@@ -29,11 +29,7 @@ public class ExpeditionPrepUI : MonoBehaviour
     [SerializeField] private Transform entryPointContainer;
     [SerializeField] private ExpeditionEntryPointUIItem entryPointItemPrefab;
 
-    [Header("Recruit List")]
-    [SerializeField] private Transform recruitListContainer;
-    [SerializeField] private ExpeditionRecruitListItem recruitListItemPrefab;
-
-    [Header("Selected Crew List")]
+    [Header("Assigned Crew (read-only, assigned at Recruit Board)")]
     [SerializeField] private Transform selectedCrewContainer;
     [SerializeField] private ExpeditionSelectedCrewItem selectedCrewItemPrefab;
 
@@ -41,7 +37,6 @@ public class ExpeditionPrepUI : MonoBehaviour
     [SerializeField] private Button startExpeditionButton;
 
     private readonly List<ExpeditionEntryPointUIItem> spawnedEntryPointItems = new();
-    private readonly List<ExpeditionRecruitListItem> spawnedRecruitListItems = new();
     private readonly List<ExpeditionSelectedCrewItem> spawnedSelectedCrewItems = new();
 
     private void Awake()
@@ -87,7 +82,6 @@ public class ExpeditionPrepUI : MonoBehaviour
         RefreshMapLocationHighlights();
         RefreshSelectionSummary();
         RefreshEntryPointList();
-        RefreshRecruitList();
         RefreshSelectedCrewList();
         RefreshStartButtonState();
     }
@@ -177,48 +171,6 @@ public class ExpeditionPrepUI : MonoBehaviour
             Destroy(entryPointContainer.GetChild(i).gameObject);
     }
 
-    private void RefreshRecruitList()
-    {
-        ClearRecruitList();
-
-        if (expeditionManager == null || recruitListContainer == null || recruitListItemPrefab == null)
-            return;
-
-        List<RecruitData> recruits = expeditionManager.GetAvailableRosterRecruits();
-
-        for (int i = 0; i < recruits.Count; i++)
-        {
-            RecruitData recruit = recruits[i];
-
-            if (recruit == null)
-                continue;
-
-            ExpeditionRecruitListItem item = Instantiate(recruitListItemPrefab, recruitListContainer);
-
-            bool isSelected = expeditionManager.IsRecruitSelected(recruit);
-            item.Setup(recruit, this, isSelected);
-
-            spawnedRecruitListItems.Add(item);
-        }
-    }
-
-    private void ClearRecruitList()
-    {
-        for (int i = 0; i < spawnedRecruitListItems.Count; i++)
-        {
-            if (spawnedRecruitListItems[i] != null)
-                Destroy(spawnedRecruitListItems[i].gameObject);
-        }
-
-        spawnedRecruitListItems.Clear();
-
-        if (recruitListContainer == null)
-            return;
-
-        for (int i = recruitListContainer.childCount - 1; i >= 0; i--)
-            Destroy(recruitListContainer.GetChild(i).gameObject);
-    }
-
     private void RefreshSelectedCrewList()
     {
         ClearSelectedCrewList();
@@ -226,11 +178,11 @@ public class ExpeditionPrepUI : MonoBehaviour
         if (expeditionManager == null || selectedCrewContainer == null || selectedCrewItemPrefab == null)
             return;
 
-        IReadOnlyList<RecruitData> selectedRecruits = expeditionManager.SelectedRecruits;
+        IReadOnlyList<RecruitData> party = expeditionManager.GetExpeditionParty();
 
-        for (int i = 0; i < selectedRecruits.Count; i++)
+        for (int i = 0; i < party.Count; i++)
         {
-            RecruitData recruit = selectedRecruits[i];
+            RecruitData recruit = party[i];
 
             if (recruit == null)
                 continue;
@@ -297,27 +249,6 @@ public class ExpeditionPrepUI : MonoBehaviour
         }
 
         expeditionManager.SetSelectedEntryPoint(entryPoint);
-        RefreshAll();
-    }
-
-    public void ToggleRecruitSelection(RecruitData recruit)
-    {
-        if (expeditionManager == null)
-            return;
-
-        if (recruit == null)
-        {
-            Debug.LogWarning("ExpeditionPrepUI: Recruit is null.", this);
-            return;
-        }
-
-        bool changed = expeditionManager.ToggleRecruitSelection(recruit);
-
-        if (!changed)
-        {
-            Debug.LogWarning("ExpeditionPrepUI: Could not change recruit selection. Maybe max crew size reached.", this);
-        }
-
         RefreshAll();
     }
 

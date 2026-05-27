@@ -11,7 +11,10 @@ public class RecruitRosterManager : MonoBehaviour
     [Header("Hired Recruits")]
     [SerializeField] private List<RecruitData> hiredRecruits = new();
 
+    private readonly List<RecruitData> expeditionParty = new();
+
     public event Action OnRosterChanged;
+    public event Action OnPartyChanged;
 
     public int MaxFreeRecruitSlots => maxFreeRecruitSlots;
     public int MaxPaidRecruitSlots => maxPaidRecruitSlots;
@@ -20,6 +23,8 @@ public class RecruitRosterManager : MonoBehaviour
     public int FreeRecruitCount => GetRecruitCountByType(RecruitType.Free);
     public int PaidRecruitCount => GetRecruitCountByType(RecruitType.Paid);
     public int TotalRecruitCount => hiredRecruits.Count;
+
+    public IReadOnlyList<RecruitData> ExpeditionParty => expeditionParty;
 
     public List<RecruitData> GetAllHiredRecruits()
     {
@@ -103,10 +108,79 @@ public class RecruitRosterManager : MonoBehaviour
         if (recruit == null)
             return;
 
+        RemoveFromParty(recruit);
+
         if (hiredRecruits.Remove(recruit))
         {
             OnRosterChanged?.Invoke();
             Debug.Log($"Recruit removed from roster: {recruit.recruitName}");
+        }
+    }
+
+    // ── Expedition party management ──────────────────────────────────────────
+
+    public bool IsInParty(RecruitData recruit)
+    {
+        return recruit != null && expeditionParty.Contains(recruit);
+    }
+
+    public bool TryAddToParty(RecruitData recruit)
+    {
+        if (recruit == null)
+            return false;
+
+        if (!recruit.IsAvailable)
+            return false;
+
+        if (expeditionParty.Contains(recruit))
+            return false;
+
+        recruit.status = RecruitStatus.AssignedToParty;
+        expeditionParty.Add(recruit);
+        OnPartyChanged?.Invoke();
+
+        Debug.Log($"Recruit added to expedition party: {recruit.recruitName}");
+        return true;
+    }
+
+    public void RemoveFromParty(RecruitData recruit)
+    {
+        if (recruit == null)
+            return;
+
+        if (!expeditionParty.Remove(recruit))
+            return;
+
+        if (recruit.status == RecruitStatus.AssignedToParty)
+            recruit.status = RecruitStatus.Idle;
+
+        OnPartyChanged?.Invoke();
+
+        Debug.Log($"Recruit removed from expedition party: {recruit.recruitName}");
+    }
+
+    public void ClearParty()
+    {
+        for (int i = 0; i < expeditionParty.Count; i++)
+        {
+            RecruitData recruit = expeditionParty[i];
+
+            if (recruit != null && recruit.status == RecruitStatus.AssignedToParty)
+                recruit.status = RecruitStatus.Idle;
+        }
+
+        expeditionParty.Clear();
+        OnPartyChanged?.Invoke();
+    }
+
+    public void MarkPartyOnExpedition()
+    {
+        for (int i = 0; i < expeditionParty.Count; i++)
+        {
+            RecruitData recruit = expeditionParty[i];
+
+            if (recruit != null)
+                recruit.status = RecruitStatus.OnExpedition;
         }
     }
 }

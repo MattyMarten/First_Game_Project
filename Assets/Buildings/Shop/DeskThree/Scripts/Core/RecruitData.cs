@@ -25,6 +25,11 @@ public class RecruitData
     public string accessorySlot2Id;
     public string accessorySlot3Id;
 
+    [Header("Availability")]
+    public RecruitStatus status = RecruitStatus.Idle;
+    public int unavailableForDays;
+
+    public bool IsAvailable => status == RecruitStatus.Idle;
     public bool IsFreeRecruit => recruitType == RecruitType.Free;
     public bool IsPaidRecruit => recruitType == RecruitType.Paid;
 }
