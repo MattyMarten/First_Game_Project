@@ -21,6 +21,7 @@ public class ShopNpcTrafficManager : MonoBehaviour
 
     [Header("Traffic Timing")]
     [SerializeField] private float sharedSpawnInterval = 6f;
+    [SerializeField] private bool trafficEnabled = true;
 
     private float spawnTimer;
 
@@ -40,6 +41,9 @@ public class ShopNpcTrafficManager : MonoBehaviour
 
     private void Update()
     {
+        if (!trafficEnabled)
+            return;
+
         if (sharedSpawnPoint == null || sharedExitPoint == null)
             return;
 
@@ -86,5 +90,13 @@ public class ShopNpcTrafficManager : MonoBehaviour
                 hireVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
                 break;
         }
+    }
+
+    public void SetTrafficEnabled(bool enabled)
+    {
+        trafficEnabled = enabled;
+
+        if (enabled)
+            spawnTimer = sharedSpawnInterval;
     }
 }
