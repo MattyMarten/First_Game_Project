@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class ShopCoreManager : MonoBehaviour
 {
+    // Whole-Shop coordinator. Owns Shop-wide state and future shared systems.
+    // Desk-specific behavior remains in ShopManager (Desk 1), ServiceDeskManager, and HireDeskManager.
+
     [Header("Shop State")]
     [SerializeField] private bool shopOpen;
 
@@ -26,10 +29,16 @@ public class ShopCoreManager : MonoBehaviour
     public void OpenShop()
     {
         shopOpen = true;
+
+        if (desk1Manager != null)
+            desk1Manager.OpenShop();
     }
 
     public void CloseShop()
     {
         shopOpen = false;
+
+        if (desk1Manager != null)
+            desk1Manager.CloseShop();
     }
 }

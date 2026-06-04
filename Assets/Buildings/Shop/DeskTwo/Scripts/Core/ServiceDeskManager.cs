@@ -12,6 +12,9 @@ public class ServiceDeskManager : MonoBehaviour
         MerchantOffer
     }
 
+    [Header("Core Manager")]
+    [SerializeField] private ShopCoreManager shopCoreManager;
+
     [Header("References")]
     [SerializeField] private RequestBoardManager requestBoardManager;
     [SerializeField] private ShopManager shopManager;
@@ -60,6 +63,7 @@ public class ServiceDeskManager : MonoBehaviour
     public int ActiveVisitorCount => activeVisitors.Count;
     public int MaxActiveVisitors => 1 + queueSpots.Count;
     public bool IsDeskOccupied => deskAssignedVisitor != null;
+    public bool IsShopOpen => shopCoreManager != null ? shopCoreManager.IsShopOpen : false;
 
     public bool IsViewingMerchantWares => isViewingMerchantWares;
     public GeneratedMerchantUtilityItem SelectedMerchantUtilityItem => selectedMerchantUtilityItem;
@@ -68,6 +72,9 @@ public class ServiceDeskManager : MonoBehaviour
 
     private void Awake()
     {
+        if (shopCoreManager == null)
+        shopCoreManager = FindAnyObjectByType<ShopCoreManager>();
+
         if (requestBoardManager == null)
             requestBoardManager = FindAnyObjectByType<RequestBoardManager>();
 

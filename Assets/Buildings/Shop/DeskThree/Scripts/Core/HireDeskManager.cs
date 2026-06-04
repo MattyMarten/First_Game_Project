@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class HireDeskManager : MonoBehaviour
 {
+    [Header("Core Manager")]
+    [SerializeField] private ShopCoreManager shopCoreManager;
+
     [Header("References")]
     [SerializeField] private RecruitRosterManager recruitRosterManager;
     [SerializeField] private RecruitQuartersManager recruitQuartersManager;
@@ -27,9 +30,13 @@ public class HireDeskManager : MonoBehaviour
     public int QueueCapacity => queueSpots.Count;
     public int QueuedVisitorCount => waitingQueue.Count;
     public bool IsDeskOccupied => deskAssignedVisitor != null;
+    public bool IsShopOpen => shopCoreManager != null ? shopCoreManager.IsShopOpen : false;
 
     private void Awake()
     {
+        if (shopCoreManager == null)
+        shopCoreManager = FindAnyObjectByType<ShopCoreManager>();
+
         if (recruitRosterManager == null)
             recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
 

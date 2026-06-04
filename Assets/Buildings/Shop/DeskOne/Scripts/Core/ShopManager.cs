@@ -3,7 +3,9 @@ using System.Collections.Generic;
 
 public class ShopManager : MonoBehaviour
 {
-    // Handles Desk 1 shop sales, buyer flow, checkout queue, and shop money.
+    // Handles Desk 1 buyer flow, queue management, pending sales, browse points, and display registration
+    [Header("Core Manager")]
+    [SerializeField] private ShopCoreManager shopCoreManager;
 
     [Header("Shop State")]
     [SerializeField] private bool shopOpen;
@@ -26,7 +28,7 @@ public class ShopManager : MonoBehaviour
 
     [Header("Queue Spots")]
     [SerializeField] private List<ShopQueueSpot> queueSpots = new();
-
+    
     private readonly List<ShopBuyerNPC> activeBuyers = new();
 
     private ShopBuyerNPC pendingBuyer;
@@ -36,7 +38,7 @@ public class ShopManager : MonoBehaviour
     private string pendingBuyerName;
     private string pendingBuyerDialogue;
 
-    public bool IsShopOpen => shopOpen;
+    public bool IsShopOpen => shopCoreManager != null ? shopCoreManager.IsShopOpen : shopOpen;
     public int CurrentMoney => currentMoney;
 
     public bool HasPendingSale => pendingBuyer != null && pendingGood != null;
@@ -61,6 +63,9 @@ public class ShopManager : MonoBehaviour
 
     private void Awake()
     {
+        if (shopCoreManager == null)
+        shopCoreManager = FindAnyObjectByType<ShopCoreManager>();
+        
         if (goodStorage == null)
             goodStorage = FindAnyObjectByType<GoodStorage>();
 
