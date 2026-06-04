@@ -43,9 +43,6 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private Transform sharedSpawnPoint;
     [SerializeField] private Transform sharedExitPoint;
 
-    [Header("Daily Visitor Plan")]
-    [SerializeField] private int dailyDesk2MerchantVisitors = 1;
-
 
     public bool IsShopOpen => shopOpen;
 
@@ -278,10 +275,7 @@ public class ShopCoreManager : MonoBehaviour
 
     private int GetPlannedDesk2MerchantVisitorCount()
     {
-        if (!IsMerchantVisitDay())
-            return 0;
-
-        return Mathf.Max(0, dailyDesk2MerchantVisitors);
+        return IsMerchantVisitDay() ? 1 : 0;
     }
 
     private int GetPlannedDesk3HireVisitorCount()
