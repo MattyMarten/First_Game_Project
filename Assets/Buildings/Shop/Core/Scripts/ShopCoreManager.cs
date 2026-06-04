@@ -39,6 +39,11 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private Transform sharedSpawnPoint;
     [SerializeField] private Transform sharedExitPoint;
 
+    [Header("Daily Visitor Plan")]
+    [SerializeField] private int dailyDesk1Buyers = 3;
+    [SerializeField] private int dailyDesk2Visitors = 3;
+    [SerializeField] private int dailyDesk3Visitors = 2;
+
     public bool IsShopOpen => shopOpen;
 
     public ShopManager Desk1Manager => desk1Manager;
@@ -59,6 +64,10 @@ public class ShopCoreManager : MonoBehaviour
     public Transform SharedSpawnPoint => sharedSpawnPoint;
     public Transform SharedExitPoint => sharedExitPoint;
 
+    private readonly System.Collections.Generic.List<ShopSpawnType> dailyVisitorSpawnList = new(); 
+    public int DailyVisitorSpawnCount => dailyVisitorSpawnList.Count;
+    public bool HasRemainingDailyVisitors => dailyVisitorSpawnList.Count > 0;
+
     private void Awake()
     {
         if (shopBuyerSpawner == null)
@@ -69,13 +78,14 @@ public class ShopCoreManager : MonoBehaviour
 
         if (hireVisitorSpawner == null)
             hireVisitorSpawner = FindAnyObjectByType<HireVisitorSpawner>();
-
-        ResetSpawnTimer();
     }
 
     private void Update()
     {
         if (sharedSpawnPoint == null || sharedExitPoint == null)
+            return;
+
+        if (!spawnCycleRunning)
             return;
 
         if (!TryConsumeSpawnTick(Time.deltaTime))
@@ -88,6 +98,9 @@ public class ShopCoreManager : MonoBehaviour
     {
         shopOpen = true;
 
+        BuildDailyVisitorSpawnList();
+        ResetSpawnTimer();
+
         if (desk1Manager != null)
             desk1Manager.OpenShop();
     }
@@ -95,9 +108,23 @@ public class ShopCoreManager : MonoBehaviour
     public void CloseShop()
     {
         shopOpen = false;
+        ClearDailyVisitorSpawnList();
+        ResetSpawnTimer();
 
         if (desk1Manager != null)
             desk1Manager.CloseShop();
+    }
+
+    [ContextMenu("Open Shop")]
+    private void DebugOpenShop()
+    {
+        OpenShop();
+    }
+
+    [ContextMenu("Close Shop")]
+    private void DebugCloseShop()
+    {
+        CloseShop();
     }
 
     public void ResetSpawnTimer()
@@ -140,6 +167,15 @@ public class ShopCoreManager : MonoBehaviour
 
     public void TrySpawnNextNpc()
     {
+        if (TryConsumeNextDailyVisitor(out ShopSpawnType plannedSpawnType))
+        {
+            if (TrySpawnSpecificType(plannedSpawnType))
+                return;
+        }
+
+        if (!HasRemainingDailyVisitors)
+            return;
+
         System.Collections.Generic.List<ShopSpawnType> validSpawnTypes = new();
 
         if (shopBuyerSpawner != null && shopBuyerSpawner.CanSpawnBuyer())
@@ -155,20 +191,78 @@ public class ShopCoreManager : MonoBehaviour
             return;
 
         ShopSpawnType chosenType = ChooseNextSpawnType(validSpawnTypes);
+        TrySpawnSpecificType(chosenType);
+    }
 
-        switch (chosenType)
+    private bool TrySpawnSpecificType(ShopSpawnType spawnType)
+    {
+        switch (spawnType)
         {
             case ShopSpawnType.Desk1Buyer:
-                shopBuyerSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
-                break;
+                return shopBuyerSpawner != null &&
+                       shopBuyerSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
 
             case ShopSpawnType.Desk2ServiceVisitor:
-                serviceVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
-                break;
+                return serviceVisitorSpawner != null &&
+                       serviceVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
 
             case ShopSpawnType.Desk3HireVisitor:
-                hireVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
-                break;
+                return hireVisitorSpawner != null &&
+                       hireVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
         }
+
+        return false;
+    }
+
+    public void BuildDailyVisitorSpawnList()
+    {
+        dailyVisitorSpawnList.Clear();
+
+        AddDailyVisitors(ShopSpawnType.Desk1Buyer, dailyDesk1Buyers);
+        AddDailyVisitors(ShopSpawnType.Desk2ServiceVisitor, dailyDesk2Visitors);
+        AddDailyVisitors(ShopSpawnType.Desk3HireVisitor, dailyDesk3Visitors);
+
+        ShuffleDailyVisitorSpawnList();
+        remainingDailyVisitors = dailyVisitorSpawnList.Count;
+        spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+    }
+
+    private void AddDailyVisitors(ShopSpawnType spawnType, int count)
+    {
+        int safeCount = Mathf.Max(0, count);
+
+        for (int i = 0; i < safeCount; i++)
+            dailyVisitorSpawnList.Add(spawnType);
+    }
+
+    private void ShuffleDailyVisitorSpawnList()
+    {
+        for (int i = 0; i < dailyVisitorSpawnList.Count; i++)
+        {
+            int randomIndex = Random.Range(i, dailyVisitorSpawnList.Count);
+            (dailyVisitorSpawnList[i], dailyVisitorSpawnList[randomIndex]) =
+                (dailyVisitorSpawnList[randomIndex], dailyVisitorSpawnList[i]);
+        }
+    }
+
+    public bool TryConsumeNextDailyVisitor(out ShopSpawnType nextSpawnType)
+    {
+        nextSpawnType = default;
+
+        if (dailyVisitorSpawnList.Count == 0)
+            return false;
+
+        nextSpawnType = dailyVisitorSpawnList[0];
+        dailyVisitorSpawnList.RemoveAt(0);
+        remainingDailyVisitors = dailyVisitorSpawnList.Count;
+        spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+        return true;
+    }
+
+    private void ClearDailyVisitorSpawnList()
+    {
+        dailyVisitorSpawnList.Clear();
+        remainingDailyVisitors = 0;
+        spawnCycleRunning = false;
     }
 }
