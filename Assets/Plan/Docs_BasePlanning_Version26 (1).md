@@ -398,7 +398,6 @@ Examples:
 - "I’d like to buy this [item name]."
 - "Could you do 20% off for this [item name]?"
 - "I’ve been looking for this [item name]. I’d pay 25% more."
-- "Just looking around."
 
 ---
 
