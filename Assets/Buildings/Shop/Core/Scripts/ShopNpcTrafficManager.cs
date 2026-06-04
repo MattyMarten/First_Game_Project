@@ -3,12 +3,18 @@ using UnityEngine;
 
 public class ShopNpcTrafficManager : MonoBehaviour
 {
+    // Temporary prototype traffic scheduler.
+    // Final Shop-wide visitor scheduling will move to ShopCoreManager.
+
     private enum TrafficSpawnType
     {
         Desk1Buyer,
         Desk2ServiceVisitor,
         Desk3HireVisitor
     }
+
+    [Header("Core Manager")]
+    [SerializeField] private ShopCoreManager shopCoreManager;
 
     [Header("References")]
     [SerializeField] private ShopBuyerSpawner shopBuyerSpawner;
@@ -26,6 +32,9 @@ public class ShopNpcTrafficManager : MonoBehaviour
 
     private void Awake()
     {
+        if (shopCoreManager == null)
+        shopCoreManager = FindAnyObjectByType<ShopCoreManager>();
+
         if (shopBuyerSpawner == null)
             shopBuyerSpawner = FindAnyObjectByType<ShopBuyerSpawner>();
 
@@ -41,6 +50,9 @@ public class ShopNpcTrafficManager : MonoBehaviour
     private void Update()
     {
         if (sharedSpawnPoint == null || sharedExitPoint == null)
+            return;
+
+        if (shopCoreManager == null || !shopCoreManager.IsShopOpen)
             return;
 
         spawnTimer -= Time.deltaTime;

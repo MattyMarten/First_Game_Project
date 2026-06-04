@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class ServiceVisitorSpawner : MonoBehaviour
 {
+    // Temporary Desk 2 spawn executor and prototype local/planned spawn logic.
+    // Final visitor scheduling will move to ShopCoreManager.   
     private enum PlannedVisitorType
     {
         Request,
@@ -53,6 +55,9 @@ public class ServiceVisitorSpawner : MonoBehaviour
         if (serviceDeskManager == null)
             return;
 
+        if (!serviceDeskManager.IsShopOpen)
+        return;
+
         if (spawnPoint == null || deskPoint == null || exitPoint == null)
             return;
 
@@ -98,6 +103,9 @@ public class ServiceVisitorSpawner : MonoBehaviour
 
         if (!serviceDeskManager.CanAcceptAnotherVisitor())
             return false;
+
+        if (!serviceDeskManager.IsShopOpen)
+        return false;
 
         return true;
     }

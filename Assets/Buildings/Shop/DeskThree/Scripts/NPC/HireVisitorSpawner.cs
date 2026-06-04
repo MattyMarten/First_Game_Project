@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class HireVisitorSpawner : MonoBehaviour
 {
+    // Temporary Desk 3 spawn executor and prototype local spawn logic.
+    // Final visitor scheduling will move to ShopCoreManager.
+
     [Header("References")]
     [SerializeField] private HireDeskManager hireDeskManager;
     [SerializeField] private RecruitGenerator recruitGenerator;
@@ -40,6 +43,9 @@ public class HireVisitorSpawner : MonoBehaviour
         if (hireVisitorPrefab == null || spawnPoint == null || deskPoint == null || exitPoint == null)
             return;
 
+        if (!hireDeskManager.IsShopOpen)
+        return;
+
         if (!recruitGenerator.CanGenerateRecruit())
             return;
 
@@ -54,6 +60,9 @@ public class HireVisitorSpawner : MonoBehaviour
 
     public bool CanSpawnHireVisitor()
     {
+        if (!hireDeskManager.IsShopOpen)
+        return false;
+
         if (hireDeskManager == null || recruitGenerator == null)
             return false;
 
