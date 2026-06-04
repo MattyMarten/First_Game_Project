@@ -9,7 +9,9 @@ public class ShopCoreManager : MonoBehaviour
     public enum ShopSpawnType
     {
         Desk1Buyer,
-        Desk2ServiceVisitor,
+        Desk2TalkingVisitor,
+        Desk2RequestVisitor,
+        Desk2MerchantVisitor,
         Desk3HireVisitor
     }
 
@@ -41,7 +43,9 @@ public class ShopCoreManager : MonoBehaviour
 
     [Header("Daily Visitor Plan")]
     [SerializeField] private int dailyDesk1Buyers = 3;
-    [SerializeField] private int dailyDesk2Visitors = 3;
+    [SerializeField] private int dailyDesk2TalkingVisitors = 1;
+    [SerializeField] private int dailyDesk2RequestVisitors = 1;
+    [SerializeField] private int dailyDesk2MerchantVisitors = 1;
     [SerializeField] private int dailyDesk3Visitors = 2;
 
     public bool IsShopOpen => shopOpen;
@@ -182,7 +186,11 @@ public class ShopCoreManager : MonoBehaviour
             validSpawnTypes.Add(ShopSpawnType.Desk1Buyer);
 
         if (serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor())
-            validSpawnTypes.Add(ShopSpawnType.Desk2ServiceVisitor);
+        {
+            validSpawnTypes.Add(ShopSpawnType.Desk2TalkingVisitor);
+            validSpawnTypes.Add(ShopSpawnType.Desk2RequestVisitor);
+            validSpawnTypes.Add(ShopSpawnType.Desk2MerchantVisitor);
+        }
 
         if (hireVisitorSpawner != null && hireVisitorSpawner.CanSpawnHireVisitor())
             validSpawnTypes.Add(ShopSpawnType.Desk3HireVisitor);
@@ -202,9 +210,11 @@ public class ShopCoreManager : MonoBehaviour
                 return shopBuyerSpawner != null &&
                        shopBuyerSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
 
-            case ShopSpawnType.Desk2ServiceVisitor:
+            case ShopSpawnType.Desk2TalkingVisitor:
+            case ShopSpawnType.Desk2RequestVisitor:
+            case ShopSpawnType.Desk2MerchantVisitor:
                 return serviceVisitorSpawner != null &&
-                       serviceVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
+                       serviceVisitorSpawner.TrySpawnSpecificVisitor(spawnType, sharedSpawnPoint, sharedExitPoint);
 
             case ShopSpawnType.Desk3HireVisitor:
                 return hireVisitorSpawner != null &&
@@ -218,13 +228,61 @@ public class ShopCoreManager : MonoBehaviour
     {
         dailyVisitorSpawnList.Clear();
 
-        AddDailyVisitors(ShopSpawnType.Desk1Buyer, dailyDesk1Buyers);
-        AddDailyVisitors(ShopSpawnType.Desk2ServiceVisitor, dailyDesk2Visitors);
-        AddDailyVisitors(ShopSpawnType.Desk3HireVisitor, dailyDesk3Visitors);
+        AddDailyVisitors(ShopSpawnType.Desk1Buyer, GetPlannedDesk1BuyerCount());
+        AddDailyVisitors(ShopSpawnType.Desk2TalkingVisitor, GetPlannedDesk2TalkingVisitorCount());
+        AddDailyVisitors(ShopSpawnType.Desk2RequestVisitor, GetPlannedDesk2RequestVisitorCount());
+        AddDailyVisitors(ShopSpawnType.Desk2MerchantVisitor, GetPlannedDesk2MerchantVisitorCount());
+        AddDailyVisitors(ShopSpawnType.Desk3HireVisitor, GetPlannedDesk3HireVisitorCount());
 
         ShuffleDailyVisitorSpawnList();
         remainingDailyVisitors = dailyVisitorSpawnList.Count;
         spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+    }
+
+    private int GetPlannedDesk1BuyerCount()
+    {
+        int baseCount = Mathf.Max(0, dailyDesk1Buyers);
+        int appealModifier = GetBuyerCountAppealModifier();
+        return Mathf.Max(0, baseCount + appealModifier);
+    }
+
+    private int GetPlannedDesk2TalkingVisitorCount()
+    {
+        return Mathf.Max(0, dailyDesk2TalkingVisitors);
+    }
+
+    private int GetPlannedDesk2RequestVisitorCount()
+    {
+        return Mathf.Max(0, dailyDesk2RequestVisitors);
+    }
+
+    private int GetPlannedDesk2MerchantVisitorCount()
+    {
+        if (!IsMerchantVisitDay())
+            return 0;
+
+        return Mathf.Max(0, dailyDesk2MerchantVisitors);
+    }
+
+    private int GetPlannedDesk3HireVisitorCount()
+    {
+        return Mathf.Max(0, dailyDesk3Visitors);
+    }
+
+    private bool IsMerchantVisitDay()
+    {
+        return true;
+    }
+
+    private int GetBuyerCountAppealModifier()
+    {
+        if (shopAppeal >= 70)
+            return 1;
+
+        if (shopAppeal <= 30)
+            return -1;
+
+        return 0;
     }
 
     private void AddDailyVisitors(ShopSpawnType spawnType, int count)
