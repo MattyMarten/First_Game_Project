@@ -33,6 +33,8 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private HireVisitorSpawner hireVisitorSpawner;
 
     [Header("Future Shop Systems")]
+    [SerializeField] private DayCounter dayCounter;
+    [SerializeField] private int shopLevel = 1;
     [SerializeField] private int shopAppeal = 50;
     [SerializeField] private bool spawnCycleRunning;
     [SerializeField] private int remainingDailyVisitors;
@@ -42,11 +44,8 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private Transform sharedExitPoint;
 
     [Header("Daily Visitor Plan")]
-    [SerializeField] private int dailyDesk1Buyers = 3;
-    [SerializeField] private int dailyDesk2TalkingVisitors = 1;
-    [SerializeField] private int dailyDesk2RequestVisitors = 1;
     [SerializeField] private int dailyDesk2MerchantVisitors = 1;
-    [SerializeField] private int dailyDesk3Visitors = 2;
+
 
     public bool IsShopOpen => shopOpen;
 
@@ -61,6 +60,7 @@ public class ShopCoreManager : MonoBehaviour
     public ServiceVisitorSpawner ServiceVisitorSpawner => serviceVisitorSpawner;
     public HireVisitorSpawner HireVisitorSpawner => hireVisitorSpawner;
 
+    public int ShopLevel => shopLevel;
     public int ShopAppeal => shopAppeal;
     public bool IsSpawnCycleRunning => spawnCycleRunning;
     public int RemainingDailyVisitors => remainingDailyVisitors;
@@ -74,6 +74,9 @@ public class ShopCoreManager : MonoBehaviour
 
     private void Awake()
     {
+        if (dayCounter == null)
+            dayCounter = FindAnyObjectByType<DayCounter>();
+
         if (shopBuyerSpawner == null)
             shopBuyerSpawner = FindAnyObjectByType<ShopBuyerSpawner>();
 
@@ -144,6 +147,11 @@ public class ShopCoreManager : MonoBehaviour
     public bool IsSpawnTimerReady()
     {
         return currentSpawnTimer <= 0f;
+    }
+
+    private int GetCurrentDay()
+    {
+        return dayCounter != null ? dayCounter.CurrentDay : 1;
     }
 
     public bool TryConsumeSpawnTick(float deltaTime)
@@ -241,19 +249,31 @@ public class ShopCoreManager : MonoBehaviour
 
     private int GetPlannedDesk1BuyerCount()
     {
-        int baseCount = Mathf.Max(0, dailyDesk1Buyers);
+        int baseCount = GetBaseBuyerCountForShopLevel();
         int appealModifier = GetBuyerCountAppealModifier();
         return Mathf.Max(0, baseCount + appealModifier);
     }
 
     private int GetPlannedDesk2TalkingVisitorCount()
     {
-        return Mathf.Max(0, dailyDesk2TalkingVisitors);
+        return GetEffectiveShopLevel() switch
+        {
+            1 => 1,
+            2 => 1,
+            3 => 2,
+            _ => 2
+        };
     }
 
     private int GetPlannedDesk2RequestVisitorCount()
     {
-        return Mathf.Max(0, dailyDesk2RequestVisitors);
+        return GetEffectiveShopLevel() switch
+        {
+            1 => 1,
+            2 => 2,
+            3 => 2,
+            _ => 2
+        };
     }
 
     private int GetPlannedDesk2MerchantVisitorCount()
@@ -266,12 +286,18 @@ public class ShopCoreManager : MonoBehaviour
 
     private int GetPlannedDesk3HireVisitorCount()
     {
-        return Mathf.Max(0, dailyDesk3Visitors);
+        return GetEffectiveShopLevel() switch
+        {
+            1 => 1,
+            2 => 2,
+            3 => 2,
+            _ => 2
+        };
     }
 
     private bool IsMerchantVisitDay()
     {
-        return true;
+        return GetCurrentDay() % 3 == 0;
     }
 
     private int GetBuyerCountAppealModifier()
@@ -283,6 +309,17 @@ public class ShopCoreManager : MonoBehaviour
             return -1;
 
         return 0;
+    }
+
+    private int GetBaseBuyerCountForShopLevel()
+    {
+        return GetEffectiveShopLevel() switch
+        {
+            1 => 3,
+            2 => 4,
+            3 => 5,
+            _ => 5
+        };
     }
 
     private void AddDailyVisitors(ShopSpawnType spawnType, int count)
@@ -322,5 +359,29 @@ public class ShopCoreManager : MonoBehaviour
         dailyVisitorSpawnList.Clear();
         remainingDailyVisitors = 0;
         spawnCycleRunning = false;
+    }
+
+    private int GetEffectiveShopLevel()
+    {
+        return Mathf.Max(1, shopLevel);
+    }
+
+
+    [ContextMenu("Debug Print Daily Visitor Plan")]
+    private void DebugPrintDailyVisitorPlan()
+    {
+        BuildDailyVisitorSpawnList();
+
+        System.Text.StringBuilder builder = new();
+        builder.AppendLine("=== Shop Daily Visitor Plan ===");
+        builder.AppendLine($"Day: {GetCurrentDay()}");
+        builder.AppendLine($"Shop Level: {GetEffectiveShopLevel()}");
+        builder.AppendLine($"Shop Appeal: {shopAppeal}");
+        builder.AppendLine($"Planned Count: {dailyVisitorSpawnList.Count}");
+
+        for (int i = 0; i < dailyVisitorSpawnList.Count; i++)
+            builder.AppendLine($"{i + 1}. {dailyVisitorSpawnList[i]}");
+
+        Debug.Log(builder.ToString());
     }
 }

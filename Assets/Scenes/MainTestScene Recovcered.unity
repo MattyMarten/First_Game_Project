@@ -3915,6 +3915,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 105013411}
   m_CullTransparentMesh: 1
+--- !u!1 &106839487
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 106839488}
+  m_Layer: 0
+  m_Name: ShopRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &106839488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 106839487}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 429768243}
+  m_Father: {fileID: 2094515339}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &106874016 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2859438476067155803, guid: f3510c2305f96fb4bbcf4dd1e029189e, type: 3}
@@ -7946,56 +7978,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7c2edefa3500da41a55645f3618b3e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopBrowsePoint
---- !u!1 &142543291
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 142543293}
-  - component: {fileID: 142543292}
-  m_Layer: 0
-  m_Name: ShopNpcTrafficManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &142543292
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 142543291}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45d13c6d9cad5d84a9e7029b46bf45d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ShopNpcTrafficManager
-  shopBuyerSpawner: {fileID: 186877553}
-  serviceVisitorSpawner: {fileID: 423381467}
-  hireVisitorSpawner: {fileID: 903732632}
-  sharedSpawnPoint: {fileID: 240889933}
-  sharedExitPoint: {fileID: 1526857225}
-  sharedSpawnInterval: 6
---- !u!4 &142543293
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 142543291}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.70710576, z: -0, w: 0.70710784}
-  m_LocalPosition: {x: -742.9854, y: 0, z: 783.3071}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2094515339}
-  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &144653974
 GameObject:
   m_ObjectHideFlags: 0
@@ -26839,11 +26821,7 @@ MonoBehaviour:
   requestVisitorPrefab: {fileID: 4213011470295787123, guid: 4bec20e15b2b6304dbce23375d4a54ce, type: 3}
   talkingVisitorPrefab: {fileID: 5036142893287636982, guid: 450352b3e5136864cac83b149509b88f, type: 3}
   merchantVisitorPrefab: {fileID: 5244925295610522073, guid: b1b380cf72c95ec4abe9a86683e9e4f6, type: 3}
-  requestVisitorsToSpawn: 3
-  talkingVisitorsToSpawn: 2
-  merchantVisitorsToSpawn: 1
   spawnInterval: 12
-  buildPoolOnAwake: 1
   useLocalAutoSpawn: 0
 --- !u!1 &424326875
 GameObject:
@@ -26968,6 +26946,67 @@ Transform:
   - {fileID: 321657386}
   m_Father: {fileID: 561529716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &429768242
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 429768243}
+  - component: {fileID: 429768244}
+  m_Layer: 0
+  m_Name: ShopCore
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &429768243
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429768242}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 106839488}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &429768244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429768242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 424d322021e03044e8d3c935f2ea83f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShopCoreManager
+  shopOpen: 0
+  desk1Manager: {fileID: 1463683982}
+  desk2Manager: {fileID: 1073974734}
+  desk3Manager: {fileID: 1642449950}
+  sharedSpawnInterval: 6
+  currentSpawnTimer: 0
+  shopBuyerSpawner: {fileID: 186877553}
+  serviceVisitorSpawner: {fileID: 423381467}
+  hireVisitorSpawner: {fileID: 903732632}
+  dayCounter: {fileID: 0}
+  shopLevel: 1
+  shopAppeal: 50
+  spawnCycleRunning: 0
+  remainingDailyVisitors: 0
+  sharedSpawnPoint: {fileID: 240889933}
+  sharedExitPoint: {fileID: 1526857225}
+  dailyDesk2MerchantVisitors: 1
 --- !u!1 &431296667
 GameObject:
   m_ObjectHideFlags: 0
@@ -28326,6 +28365,51 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!1 &461781231
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 461781233}
+  - component: {fileID: 461781232}
+  m_Layer: 0
+  m_Name: DayCounter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &461781232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 461781231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ef2d6c5110615c4b9d2c72582bead10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DayCounter
+  currentDay: 1
+--- !u!4 &461781233
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 461781231}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 75.86129, y: 0.36539, z: -33.49846}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &463439372
 GameObject:
   m_ObjectHideFlags: 0
@@ -63869,6 +63953,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e9ad24e15edb66428f0bccc696c4ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ServiceDeskManager
+  shopCoreManager: {fileID: 0}
   requestBoardManager: {fileID: 1836351697}
   shopManager: {fileID: 1463683982}
   dialogueInfoManager: {fileID: 648338067}
@@ -84694,7 +84779,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35afa76a12d88294eb38c6876bf0f301, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShopManager
-  shopOpen: 1
+  shopCoreManager: {fileID: 0}
+  shopOpen: 0
   currentMoney: 100
   registeredDisplays: []
   goodStorage: {fileID: 5631504226915994591}
@@ -94639,6 +94725,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd9328e26dabd5449b33a3eb8dbe3f73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HireDeskManager
+  shopCoreManager: {fileID: 0}
   recruitRosterManager: {fileID: 2060292030}
   recruitQuartersManager: {fileID: 0}
   shopManager: {fileID: 1463683982}
@@ -101229,7 +101316,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2222635897399233910, guid: 4379fec93791f474c90ddb01803c13e1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.6189995
+      value: -33.619
       objectReference: {fileID: 0}
     - target: {fileID: 2222635897399233910, guid: 4379fec93791f474c90ddb01803c13e1, type: 3}
       propertyPath: m_LocalPosition.y
@@ -101237,7 +101324,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2222635897399233910, guid: 4379fec93791f474c90ddb01803c13e1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 13.050926
+      value: -18.949074
       objectReference: {fileID: 0}
     - target: {fileID: 2222635897399233910, guid: 4379fec93791f474c90ddb01803c13e1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -124273,7 +124360,7 @@ Transform:
   - {fileID: 2003417510}
   - {fileID: 1397371409}
   - {fileID: 1237038282}
-  - {fileID: 142543293}
+  - {fileID: 106839488}
   m_Father: {fileID: 1765976803}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2102795416
@@ -160325,3 +160412,4 @@ SceneRoots:
   - {fileID: 6155295179134168165}
   - {fileID: 1182936375}
   - {fileID: 919257211}
+  - {fileID: 461781233}
