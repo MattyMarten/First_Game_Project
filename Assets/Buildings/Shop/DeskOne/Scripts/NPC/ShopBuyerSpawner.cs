@@ -2,6 +2,16 @@ using UnityEngine;
 
 public class ShopBuyerSpawner : MonoBehaviour
 {
+
+    // Temporary Desk 1 spawn executor and prototype local spawn logic.
+    // Final visitor scheduling will move to ShopCoreManager.
+    public enum ShopSpawnType
+    {
+        Desk1Buyer,
+        Desk2ServiceVisitor,
+        Desk3HireVisitor
+    }
+
     [Header("References")]
     [SerializeField] private ShopManager shopManager;
     [SerializeField] private ShopBuyerNPC buyerPrefab;
@@ -10,7 +20,7 @@ public class ShopBuyerSpawner : MonoBehaviour
 
     [Header("Spawn Settings")]
     [SerializeField] private float spawnInterval = 15f;
-    [SerializeField] private bool useLocalAutoSpawn = true;
+    [SerializeField] private bool useLocalAutoSpawn = false;
 
     private float spawnTimer;
 
@@ -87,5 +97,14 @@ public class ShopBuyerSpawner : MonoBehaviour
     private void TrySpawnBuyer()
     {
         TrySpawnFromTrafficManager(spawnPoint, spawnPoint);
+    }
+
+    public ShopSpawnType ChooseNextSpawnType(System.Collections.Generic.List<ShopSpawnType> validSpawnTypes)
+    {
+        if (validSpawnTypes == null || validSpawnTypes.Count == 0)
+            return default;
+
+        int randomIndex = Random.Range(0, validSpawnTypes.Count);
+        return validSpawnTypes[randomIndex];
     }
 }

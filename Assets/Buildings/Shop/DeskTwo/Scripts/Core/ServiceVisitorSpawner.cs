@@ -31,7 +31,7 @@ public class ServiceVisitorSpawner : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private float spawnInterval = 20f;
     [SerializeField] private bool buildPoolOnAwake = true;
-    [SerializeField] private bool useLocalAutoSpawn = true;
+    [SerializeField] private bool useLocalAutoSpawn = false;
 
     private float spawnTimer;
     private readonly List<PlannedVisitorType> plannedVisitors = new();

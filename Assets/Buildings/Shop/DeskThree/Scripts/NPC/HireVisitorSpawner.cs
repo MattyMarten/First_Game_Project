@@ -17,7 +17,7 @@ public class HireVisitorSpawner : MonoBehaviour
 
     [Header("Spawn Timing")]
     [SerializeField] private float spawnInterval = 20f;
-    [SerializeField] private bool useLocalAutoSpawn = true;
+    [SerializeField] private bool useLocalAutoSpawn = false;
 
     private float spawnTimer;
 
