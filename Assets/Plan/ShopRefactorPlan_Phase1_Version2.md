@@ -128,7 +128,7 @@ Desk 1 must behave exactly like the final list design.
 - customer spawns only if a valid displayed good exists
 - Desk 1 cap = 4 total active buyers
 - customer reserves browse point before moving
-- customer browses for exactly 5 seconds
+- customer browses for 4-8 seconds
 - customer chooses a random valid displayed item
 - if no valid displayed item exists at selection time, customer leaves
 - item is reserved and taken

@@ -209,7 +209,7 @@ Make Desk 1 match the written design exactly.
   - a valid displayed good exists
   - Desk 1 cap allows it
 - [ ] Buyers reserve browse points before moving
-- [ ] Browse time becomes exactly 5 seconds
+- [ ] Browse time becomes 4-8 seconds
 - [ ] Buyer chooses a random valid displayed item after browsing
 - [ ] If no valid displayed item exists then, buyer leaves
 - [ ] Sale uses:
