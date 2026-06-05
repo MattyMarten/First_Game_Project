@@ -23,9 +23,13 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private ServiceDeskManager desk2Manager;
     [SerializeField] private HireDeskManager desk3Manager;
 
-    [Header("Spawn Settings")]
-    [SerializeField] private float sharedSpawnInterval = 6f;
+    [Header("Spawn Cycle Settings")]
+    [SerializeField] private float sharedSpawnInterval = 8f;
+    [SerializeField] private float failedSpawnRetryDelay = 1f;
     [SerializeField] private float currentSpawnTimer;
+    [SerializeField] private float currentRetryTimer;
+    [SerializeField] private bool spawnAttemptCycleActive;
+    [SerializeField] private int remainingChecksThisCycle;
 
     [Header("Spawn Executors")]
     [SerializeField] private ShopBuyerSpawner shopBuyerSpawner;
@@ -68,6 +72,8 @@ public class ShopCoreManager : MonoBehaviour
     private readonly System.Collections.Generic.List<ShopSpawnType> dailyVisitorSpawnList = new(); 
     public int DailyVisitorSpawnCount => dailyVisitorSpawnList.Count;
     public bool HasRemainingDailyVisitors => dailyVisitorSpawnList.Count > 0;
+    public System.Collections.Generic.IReadOnlyList<ShopSpawnType> DailyVisitorSpawnList => dailyVisitorSpawnList;
+    public event System.Action OnDailyVisitorListChanged;
 
     private void Awake()
     {
@@ -92,16 +98,31 @@ public class ShopCoreManager : MonoBehaviour
         if (!spawnCycleRunning)
             return;
 
+        if (spawnAttemptCycleActive)
+        {
+            if (!TickRetryTimer(Time.deltaTime))
+                return;
+
+            TryAdvanceSpawnAttemptCycle();
+            return;
+        }
+
         if (!TryConsumeSpawnTick(Time.deltaTime))
             return;
 
-        TrySpawnNextNpc();
+        BeginSpawnAttemptCycle();
+        TryAdvanceSpawnAttemptCycle();
+    }
+
+    private void NotifyDailyVisitorListChanged()
+    {
+        OnDailyVisitorListChanged?.Invoke();
     }
 
     public void OpenShop()
     {
         shopOpen = true;
-
+        EndSpawnAttemptCycle();
         BuildDailyVisitorSpawnList();
         ResetSpawnTimer();
 
@@ -112,6 +133,7 @@ public class ShopCoreManager : MonoBehaviour
     public void CloseShop()
     {
         shopOpen = false;
+        EndSpawnAttemptCycle();
         ClearDailyVisitorSpawnList();
         ResetSpawnTimer();
 
@@ -165,48 +187,6 @@ public class ShopCoreManager : MonoBehaviour
         return true;
     }
 
-    public ShopSpawnType ChooseNextSpawnType(System.Collections.Generic.List<ShopSpawnType> validSpawnTypes)
-    {
-        if (validSpawnTypes == null || validSpawnTypes.Count == 0)
-            return default;
-
-        int randomIndex = Random.Range(0, validSpawnTypes.Count);
-        return validSpawnTypes[randomIndex];
-    }
-
-    public void TrySpawnNextNpc()
-    {
-        if (TryConsumeNextDailyVisitor(out ShopSpawnType plannedSpawnType))
-        {
-            if (TrySpawnSpecificType(plannedSpawnType))
-                return;
-        }
-
-        if (!HasRemainingDailyVisitors)
-            return;
-
-        System.Collections.Generic.List<ShopSpawnType> validSpawnTypes = new();
-
-        if (shopBuyerSpawner != null && shopBuyerSpawner.CanSpawnBuyer())
-            validSpawnTypes.Add(ShopSpawnType.Desk1Buyer);
-
-        if (serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor())
-        {
-            validSpawnTypes.Add(ShopSpawnType.Desk2TalkingVisitor);
-            validSpawnTypes.Add(ShopSpawnType.Desk2RequestVisitor);
-            validSpawnTypes.Add(ShopSpawnType.Desk2MerchantVisitor);
-        }
-
-        if (hireVisitorSpawner != null && hireVisitorSpawner.CanSpawnHireVisitor())
-            validSpawnTypes.Add(ShopSpawnType.Desk3HireVisitor);
-
-        if (validSpawnTypes.Count == 0)
-            return;
-
-        ShopSpawnType chosenType = ChooseNextSpawnType(validSpawnTypes);
-        TrySpawnSpecificType(chosenType);
-    }
-
     private bool TrySpawnSpecificType(ShopSpawnType spawnType)
     {
         switch (spawnType)
@@ -242,35 +222,24 @@ public class ShopCoreManager : MonoBehaviour
         ShuffleDailyVisitorSpawnList();
         remainingDailyVisitors = dailyVisitorSpawnList.Count;
         spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+        NotifyDailyVisitorListChanged();
     }
 
     private int GetPlannedDesk1BuyerCount()
     {
         int baseCount = GetBaseBuyerCountForShopLevel();
         int appealModifier = GetBuyerCountAppealModifier();
-        return Mathf.Max(0, baseCount + appealModifier);
+        return Mathf.Max(3, baseCount + appealModifier);
     }
 
     private int GetPlannedDesk2TalkingVisitorCount()
     {
-        return GetEffectiveShopLevel() switch
-        {
-            1 => 1,
-            2 => 1,
-            3 => 2,
-            _ => 2
-        };
+        return Random.Range(1, 4); // 1-3
     }
 
     private int GetPlannedDesk2RequestVisitorCount()
     {
-        return GetEffectiveShopLevel() switch
-        {
-            1 => 1,
-            2 => 2,
-            3 => 2,
-            _ => 2
-        };
+        return Random.Range(0, 3); // 0-2
     }
 
     private int GetPlannedDesk2MerchantVisitorCount()
@@ -282,37 +251,49 @@ public class ShopCoreManager : MonoBehaviour
     {
         return GetEffectiveShopLevel() switch
         {
-            1 => 1,
-            2 => 2,
-            3 => 2,
-            _ => 2
+            1 => Random.Range(0, 2), // 0-1
+            2 => 1,                  // exactly 1
+            3 => Random.Range(1, 3), // 1-2
+            _ => Random.Range(1, 3)
         };
     }
 
     private bool IsMerchantVisitDay()
     {
-        return GetCurrentDay() % 3 == 0;
+        int currentDay = GetCurrentDay();
+        int level = GetEffectiveShopLevel();
+
+        if (level >= 3)
+            return currentDay % 2 == 0;
+
+        return currentDay % 3 == 0;
     }
 
     private int GetBuyerCountAppealModifier()
     {
-        if (shopAppeal >= 70)
+        if (shopAppeal >= 80)
+            return 2;
+
+        if (shopAppeal >= 60)
             return 1;
 
-        if (shopAppeal <= 30)
+        if (shopAppeal >= 40)
+            return 0;
+
+        if (shopAppeal >= 20)
             return -1;
 
-        return 0;
+        return -2;
     }
 
     private int GetBaseBuyerCountForShopLevel()
     {
         return GetEffectiveShopLevel() switch
         {
-            1 => 3,
-            2 => 4,
-            3 => 5,
-            _ => 5
+            1 => Random.Range(6, 10),   // 6-9
+            2 => Random.Range(8, 12),   // 8-11
+            3 => Random.Range(10, 13),  // 10-12
+            _ => Random.Range(10, 13)
         };
     }
 
@@ -334,18 +315,37 @@ public class ShopCoreManager : MonoBehaviour
         }
     }
 
-    public bool TryConsumeNextDailyVisitor(out ShopSpawnType nextSpawnType)
+    private void TryAdvanceSpawnAttemptCycle()
     {
-        nextSpawnType = default;
+        if (!spawnAttemptCycleActive)
+            return;
 
-        if (dailyVisitorSpawnList.Count == 0)
-            return false;
+        if (!PeekNextDailyVisitor(out ShopSpawnType plannedSpawnType))
+        {
+            EndSpawnAttemptCycle();
+            spawnCycleRunning = false;
+            return;
+        }
 
-        nextSpawnType = dailyVisitorSpawnList[0];
-        dailyVisitorSpawnList.RemoveAt(0);
-        remainingDailyVisitors = dailyVisitorSpawnList.Count;
-        spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
-        return true;
+        if (CanSpawnType(plannedSpawnType) && TrySpawnSpecificType(plannedSpawnType))
+        {
+            RemoveNextDailyVisitor();
+            EndSpawnAttemptCycle();
+            spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+            return;
+        }
+
+        remainingChecksThisCycle--;
+
+        if (remainingChecksThisCycle <= 0)
+        {
+            EndSpawnAttemptCycle();
+            spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+            return;
+        }
+
+        RotateNextDailyVisitorToBack();
+        currentRetryTimer = failedSpawnRetryDelay;
     }
 
     private void ClearDailyVisitorSpawnList()
@@ -353,11 +353,89 @@ public class ShopCoreManager : MonoBehaviour
         dailyVisitorSpawnList.Clear();
         remainingDailyVisitors = 0;
         spawnCycleRunning = false;
+        NotifyDailyVisitorListChanged();
     }
 
     private int GetEffectiveShopLevel()
     {
         return Mathf.Max(1, shopLevel);
+    }
+
+    private bool PeekNextDailyVisitor(out ShopSpawnType spawnType)
+    {
+        spawnType = default;
+
+        if (dailyVisitorSpawnList.Count == 0)
+            return false;
+
+        spawnType = dailyVisitorSpawnList[0];
+        return true;
+    }
+
+    private void RemoveNextDailyVisitor()
+    {
+        if (dailyVisitorSpawnList.Count == 0)
+            return;
+
+        dailyVisitorSpawnList.RemoveAt(0);
+        remainingDailyVisitors = dailyVisitorSpawnList.Count;
+        spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
+        NotifyDailyVisitorListChanged();
+    }
+
+    private bool CanSpawnType(ShopSpawnType spawnType)
+    {
+        switch (spawnType)
+        {
+            case ShopSpawnType.Desk1Buyer:
+                return shopBuyerSpawner != null && shopBuyerSpawner.CanSpawnBuyer();
+
+            case ShopSpawnType.Desk2TalkingVisitor:
+            case ShopSpawnType.Desk2RequestVisitor:
+            case ShopSpawnType.Desk2MerchantVisitor:
+                return serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor();
+
+            case ShopSpawnType.Desk3HireVisitor:
+                return hireVisitorSpawner != null && hireVisitorSpawner.CanSpawnHireVisitor();
+
+            default:
+                return false;
+        }
+    }
+
+    private void RotateNextDailyVisitorToBack()
+    {
+        if (dailyVisitorSpawnList.Count <= 1)
+            return;
+
+        ShopSpawnType firstVisitor = dailyVisitorSpawnList[0];
+        dailyVisitorSpawnList.RemoveAt(0);
+        dailyVisitorSpawnList.Add(firstVisitor);
+        remainingDailyVisitors = dailyVisitorSpawnList.Count;
+        NotifyDailyVisitorListChanged();
+    }
+
+    private void BeginSpawnAttemptCycle()
+    {
+        if (dailyVisitorSpawnList.Count == 0)
+            return;
+
+        spawnAttemptCycleActive = true;
+        remainingChecksThisCycle = dailyVisitorSpawnList.Count;
+        currentRetryTimer = 0f;
+    }
+
+    private void EndSpawnAttemptCycle()
+    {
+        spawnAttemptCycleActive = false;
+        remainingChecksThisCycle = 0;
+        currentRetryTimer = 0f;
+    }
+
+    private bool TickRetryTimer(float deltaTime)
+    {
+        currentRetryTimer -= deltaTime;
+        return currentRetryTimer <= 0f;
     }
 
 
