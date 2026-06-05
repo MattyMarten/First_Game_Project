@@ -64,7 +64,7 @@ public class ShopBuyerSpawner : MonoBehaviour
         if (!shopManager.CanAcceptAnotherBuyer())
             return false;
 
-        if (!shopManager.HasAnyItemsForSale())
+        if (!shopManager.HasAnyValidDisplayedGoods())
             return false;
 
         return true;

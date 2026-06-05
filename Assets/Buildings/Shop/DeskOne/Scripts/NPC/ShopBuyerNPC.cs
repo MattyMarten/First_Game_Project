@@ -31,6 +31,11 @@ public class ShopBuyerNPC : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private Animator animator;
 
+    [Header("Negotiation")]
+    [SerializeField] private float minNegotiationPriceMultiplier = 0.90f;
+    [SerializeField] private float maxNegotiationPriceMultiplier = 1.10f;
+    [SerializeField] private float negotiationPriceMultiplier = 1.00f;
+
     protected ShopManager shopManager;
     private Transform deskWaitPoint;
     private Transform exitPoint;
@@ -107,6 +112,8 @@ public class ShopBuyerNPC : MonoBehaviour
         shopManager = manager;
         deskWaitPoint = deskPoint;
         exitPoint = leavePoint;
+
+        GenerateNegotiationProfile();
 
         agent = GetComponent<NavMeshAgent>();
 
@@ -312,29 +319,12 @@ public class ShopBuyerNPC : MonoBehaviour
         targetDisplay = null;
         reservedSlotIndex = -1;
 
-        List<DisplayStand> displays = shopManager.GetRegisteredDisplays();
-        List<DisplayStand> candidateDisplays = new();
+        bool reserved = shopManager.TryReserveRandomDisplayedGood(this, out DisplayStand chosenDisplay, out int slotIndex);
 
-        for (int i = 0; i < displays.Count; i++)
+        if (reserved)
         {
-            DisplayStand display = displays[i];
-
-            if (display != null && display.HasAnyUnreservedItemsForSale())
-                candidateDisplays.Add(display);
-        }
-
-        while (candidateDisplays.Count > 0)
-        {
-            int randomIndex = Random.Range(0, candidateDisplays.Count);
-            DisplayStand chosenDisplay = candidateDisplays[randomIndex];
-            candidateDisplays.RemoveAt(randomIndex);
-
-            if (chosenDisplay.TryReserveFirstAvailableSlot(this, out int slotIndex))
-            {
-                targetDisplay = chosenDisplay;
-                reservedSlotIndex = slotIndex;
-                break;
-            }
+            targetDisplay = chosenDisplay;
+            reservedSlotIndex = slotIndex;
         }
 
         if (targetDisplay == null || reservedSlotIndex < 0)
@@ -414,7 +404,7 @@ public class ShopBuyerNPC : MonoBehaviour
             return;
         }
 
-        int salePrice = Mathf.Max(0, carriedGood.valueGold);
+        int salePrice = shopManager.CalculateBuyerSalePrice(this, carriedGood);
         bool created = shopManager.TryCreatePendingSale(this, carriedGood, salePrice);
 
         if (!created)
@@ -699,5 +689,18 @@ public class ShopBuyerNPC : MonoBehaviour
             currentReservedBrowsePoint.Release(this);
             currentReservedBrowsePoint = null;
         }
+    }
+
+    private void GenerateNegotiationProfile()
+    {
+        float minValue = Mathf.Min(minNegotiationPriceMultiplier, maxNegotiationPriceMultiplier);
+        float maxValue = Mathf.Max(minNegotiationPriceMultiplier, maxNegotiationPriceMultiplier);
+
+        negotiationPriceMultiplier = Random.Range(minValue, maxValue);
+    }
+
+    public float GetNegotiationPriceMultiplier()
+    {
+        return negotiationPriceMultiplier;
     }
 }

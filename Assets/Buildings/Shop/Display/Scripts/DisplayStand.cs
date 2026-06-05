@@ -236,4 +236,27 @@ public class DisplayStand : MonoBehaviour
         ClearSlotVisual(slotIndex);
         return good;
     }
+
+    public bool HasUnreservedGoodInSlot(int slotIndex)
+    {
+        if (!IsValidSlot(slotIndex) || reservedByBuyers == null)
+            return false;
+
+        return placedGoods[slotIndex] != null && reservedByBuyers[slotIndex] == null;
+    }
+
+    public bool TryReserveSlot(int slotIndex, ShopBuyerNPC buyer)
+    {
+        if (!IsValidSlot(slotIndex) || reservedByBuyers == null || buyer == null)
+            return false;
+
+        if (placedGoods[slotIndex] == null)
+            return false;
+
+        if (reservedByBuyers[slotIndex] != null)
+            return false;
+
+        reservedByBuyers[slotIndex] = buyer;
+        return true;
+    }
 }

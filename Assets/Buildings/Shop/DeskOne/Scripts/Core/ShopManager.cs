@@ -437,5 +437,98 @@ public class ShopManager : MonoBehaviour
                 queuedBuyer.OnQueuePositionChanged(i);
         }
     }
-    
+
+    public bool HasAnyValidDisplayedGoods()
+    {
+        for (int i = 0; i < registeredDisplays.Count; i++)
+        {
+            DisplayStand display = registeredDisplays[i];
+
+            if (display != null && display.HasAnyUnreservedItemsForSale())
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool TryReserveRandomDisplayedGood(ShopBuyerNPC buyer, out DisplayStand chosenDisplay, out int reservedSlotIndex)
+    {
+        chosenDisplay = null;
+        reservedSlotIndex = -1;
+
+        if (buyer == null)
+            return false;
+
+        List<(DisplayStand display, int slotIndex)> validSlots = new();
+
+        for (int i = 0; i < registeredDisplays.Count; i++)
+        {
+            DisplayStand display = registeredDisplays[i];
+
+            if (display == null)
+                continue;
+
+            for (int slotIndex = 0; slotIndex < display.SlotCount; slotIndex++)
+            {
+                if (display.HasUnreservedGoodInSlot(slotIndex))
+                    validSlots.Add((display, slotIndex));
+            }
+        }
+
+        if (validSlots.Count == 0)
+            return false;
+
+        int randomIndex = Random.Range(0, validSlots.Count);
+        (DisplayStand display, int slotIndex) selected = validSlots[randomIndex];
+
+        if (!selected.display.TryReserveSlot(selected.slotIndex, buyer))
+            return false;
+
+        chosenDisplay = selected.display;
+        reservedSlotIndex = selected.slotIndex;
+        return true;
+    }
+
+    public int CalculateBuyerSalePrice(ShopBuyerNPC buyer, CraftingGood good)
+    {
+        if (good == null)
+            return 0;
+
+        int baseValue = Mathf.Max(0, good.valueGold);
+        float appealMultiplier = GetAppealPriceMultiplier();
+        float negotiationMultiplier = GetNegotiationPriceMultiplier(buyer);
+
+        int priceAfterAppeal = Mathf.RoundToInt(baseValue * appealMultiplier);
+        int finalPrice = Mathf.RoundToInt(priceAfterAppeal * negotiationMultiplier);
+
+        return Mathf.Max(0, finalPrice);
+    }
+
+    private float GetAppealPriceMultiplier()
+    {
+        int appeal = shopCoreManager != null ? shopCoreManager.ShopAppeal : 50;
+
+        if (appeal >= 80)
+            return 1.20f;
+
+        if (appeal >= 60)
+            return 1.10f;
+
+        if (appeal >= 40)
+            return 1.00f;
+
+        if (appeal >= 20)
+            return 0.90f;
+
+        return 0.80f;
+    }
+
+    private float GetNegotiationPriceMultiplier(ShopBuyerNPC buyer)
+    {
+        if (buyer == null)
+            return 1.00f;
+
+        return buyer.GetNegotiationPriceMultiplier();
+    }
+
 }
