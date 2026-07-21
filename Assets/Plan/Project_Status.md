@@ -14,9 +14,9 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 
 | Stage | Room/System | Code status |
 |---|---|---|
-| 0 | Global Day/Phase System | MISSING (stub only) |
-| 1 | Storage | KEEP, near-final |
-| 2 | Core Room (power/upkeep) | MISSING entirely |
+| 0 | Global Day/Phase System | DONE — DayPhaseSystem + CoreRoomManager stub + DayCounter absorbed |
+| 1 | Storage | DONE — CobaltCoinStorage + StorageSummaryUI added, materials/goods/utility covered |
+| 2 | Core Room (power/upkeep) | DONE — CoreRoomManager (deposit, Normal/Warning/Offline, debug upgrade path) |
 | 3 | Workshop (Grinder/Goods/Gear Workbench) | REFACTOR, mostly solid |
 | 3 | Gear Upgrade Station | MISSING |
 | 4 | Recruit Quarters | REFACTOR, solid foundation |
@@ -33,7 +33,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 11 | Dispatch Board | MISSING entirely |
 | 12 | Save/load, full integration | not started |
 
-**Current stage: [update this line each session — e.g. "Stage 2, Core Room, in progress"]**
+**Current stage: **Current stage: Stage 2, Core Room, complete. Next: Stage 3, Workshop.**     // [update this line each session — e.g. "Stage 2, Core Room, in progress"]
 
 ## Design decisions locked in (do not re-litigate these without a real reason)
 - No fixed expedition time limit — Suit Battery is the only limit on expedition duration.
