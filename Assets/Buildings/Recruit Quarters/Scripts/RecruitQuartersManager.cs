@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,8 +7,19 @@ public class RecruitQuartersManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private RecruitRosterManager recruitRosterManager;
 
+    [Header("Appeal (temporary — Stage 5 owns real Appeal logic)")]
+    [SerializeField] private ShopCoreManager shopCoreManager;
+    [SerializeField] private int retireAppealPenalty = -3;
+
     [Header("Bed Slots")]
     [SerializeField] private List<RecruitBedSlot> bedSlots = new();
+
+    [Header("Level / Capacity (index 0 = LV1)")]
+    // LV1 = 4 (2 rooms x 2 beds), LV2 = 6 (3 rooms x 2 beds), LV3 = 8 (4 rooms x 2 beds)
+    // Mirrors CoreRoomManager / GearUpgradeStationManager's upgrade-level pattern —
+    // this is a debug stand-in for the Dwarf's real Upgrade Board (Stage 8).
+    [SerializeField] private int[] capacityByLevel = new int[] { 4, 6, 8 };
+    [SerializeField] private int quartersLevelIndex = 0;
 
     [Header("Actor Setup")]
     [SerializeField] private RecruitQuartersActor recruitActorPrefab;
@@ -17,10 +29,21 @@ public class RecruitQuartersManager : MonoBehaviour
     private readonly Dictionary<string, RecruitData> pendingAcceptedRecruitsById = new();
     private readonly Dictionary<string, int> pendingReservedBedsByRecruitId = new();
 
+    public event Action<int> OnQuartersLevelChanged;
+    public event Action<RecruitData> OnRecruitRetired;
+
+    public int QuartersLevel => quartersLevelIndex + 1; // displayed as LV1/LV2/LV3
+    public bool IsMaxLevel => quartersLevelIndex >= capacityByLevel.Length - 1;
+
+    public int Capacity => capacityByLevel[Mathf.Clamp(quartersLevelIndex, 0, capacityByLevel.Length - 1)];
+
     private void Awake()
     {
         if (recruitRosterManager == null)
             recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
+
+        if (shopCoreManager == null)
+            shopCoreManager = FindAnyObjectByType<ShopCoreManager>();
     }
 
     private void OnEnable()
@@ -40,8 +63,31 @@ public class RecruitQuartersManager : MonoBehaviour
         RefreshQuarters();
     }
 
+    /// <summary>
+    /// Stand-in for the Dwarf's real Upgrade Board (Stage 8) — same pattern as
+    /// CoreRoomManager.TryUpgrade() / GearUpgradeStationManager.TryUpgradeStationLevel().
+    /// Call from this context-menu action, a debug button, or wire it up properly later.
+    /// </summary>
+    [ContextMenu("Debug: Upgrade Recruit Quarters Level")]
+    public void TryUpgradeQuartersLevel()
+    {
+        if (IsMaxLevel)
+        {
+            Debug.Log("[RecruitQuartersManager] Quarters already at max level.");
+            return;
+        }
+
+        quartersLevelIndex++;
+        Debug.Log($"[RecruitQuartersManager] Quarters upgraded to LV{QuartersLevel} (capacity {Capacity}).");
+        OnQuartersLevelChanged?.Invoke(QuartersLevel);
+
+        RefreshQuarters();
+    }
+
     public void RefreshQuarters()
     {
+        SetBedSlotActiveStatesForCapacity();
+
         if (recruitRosterManager == null)
             return;
 
@@ -51,6 +97,55 @@ public class RecruitQuartersManager : MonoBehaviour
         AssignBedsToUnassignedRecruits(recruits);
         RefreshSpawnedActors(recruits);
         CleanupCompletedReservations(recruits);
+    }
+
+    /// <summary>
+    /// Hides/shows bed slot objects beyond the current level's capacity. If your bed slots are
+    /// grouped under a per-room parent object instead, toggle that parent here instead of the
+    /// bed slot itself — whichever matches your actual scene hierarchy.
+    /// </summary>
+    private void SetBedSlotActiveStatesForCapacity()
+    {
+        for (int i = 0; i < bedSlots.Count; i++)
+        {
+            RecruitBedSlot bedSlot = bedSlots[i];
+
+            if (bedSlot == null)
+                continue;
+
+            bedSlot.gameObject.SetActive(bedSlot.BedIndex < Capacity);
+        }
+    }
+
+    public bool TryRetireRecruit(RecruitData recruit)
+    {
+        if (recruit == null || string.IsNullOrEmpty(recruit.recruitId) || recruitRosterManager == null)
+            return false;
+
+        List<RecruitData> recruits = recruitRosterManager.GetAllHiredRecruits();
+        bool isInRoster = false;
+
+        for (int i = 0; i < recruits.Count; i++)
+        {
+            if (recruits[i] != null && recruits[i].recruitId == recruit.recruitId)
+            {
+                isInRoster = true;
+                break;
+            }
+        }
+
+        if (!isInRoster)
+            return false;
+
+        recruitRosterManager.RemoveRecruit(recruit);
+
+        if (shopCoreManager != null)
+            shopCoreManager.ModifyAppeal(retireAppealPenalty);
+
+        Debug.Log($"[RecruitQuartersManager] Retired {recruit.recruitName} ({retireAppealPenalty} appeal). No undead created — retirement is a clean removal, not a death.");
+        OnRecruitRetired?.Invoke(recruit);
+
+        return true;
     }
 
     public bool TryPrepareBedForRecruit(RecruitData recruit, out RecruitBedSlot bedSlot)
@@ -69,7 +164,7 @@ public class RecruitQuartersManager : MonoBehaviour
 
         HashSet<int> usedBedIndices = GetUsedBedIndicesIncludingPending();
 
-        if (recruit.assignedBedIndex >= 0 && !usedBedIndices.Contains(recruit.assignedBedIndex))
+        if (recruit.assignedBedIndex >= 0 && IsValidBedIndex(recruit.assignedBedIndex) && !usedBedIndices.Contains(recruit.assignedBedIndex))
         {
             pendingReservedBedsByRecruitId[recruit.recruitId] = recruit.assignedBedIndex;
             pendingAcceptedRecruitsById[recruit.recruitId] = recruit;
@@ -307,6 +402,9 @@ public class RecruitQuartersManager : MonoBehaviour
 
             int index = bedSlot.BedIndex;
 
+            if (index >= Capacity)
+                continue;
+
             if (!usedBedIndices.Contains(index))
                 return index;
         }
@@ -316,6 +414,9 @@ public class RecruitQuartersManager : MonoBehaviour
 
     private bool IsValidBedIndex(int bedIndex)
     {
+        if (bedIndex >= Capacity)
+            return false;
+
         for (int i = 0; i < bedSlots.Count; i++)
         {
             RecruitBedSlot bedSlot = bedSlots[i];
@@ -341,6 +442,28 @@ public class RecruitQuartersManager : MonoBehaviour
 
             if (bedSlot.BedIndex == bedIndex)
                 return bedSlot;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Looked up live (not cached) so a persistent Locker always reflects who's currently
+    /// assigned, even after retirement, death, or reassignment changes who's in that bed.
+    /// </summary>
+    public RecruitData GetRecruitAtBedIndex(int bedIndex)
+    {
+        if (recruitRosterManager == null || bedIndex < 0)
+            return null;
+
+        List<RecruitData> recruits = recruitRosterManager.GetAllHiredRecruits();
+
+        for (int i = 0; i < recruits.Count; i++)
+        {
+            RecruitData recruit = recruits[i];
+
+            if (recruit != null && recruit.assignedBedIndex == bedIndex)
+                return recruit;
         }
 
         return null;

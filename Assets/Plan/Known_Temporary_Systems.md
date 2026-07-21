@@ -33,3 +33,9 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **What it fakes:** a real, balanced payout for acquiring a Data Stick whose recipe is already unlocked.
 **Why it's temporary:** exact value is explicitly TBD pending balancing (`Room_Workshop.md` Section 21, `Open_Architecture_Questions.md`).
 **Replaced by:** no stage owns this specifically — revisit during the Stage 12 polish/balancing pass, or earlier if a specific stage's testing makes the placeholder value obviously wrong.
+
+
+
+- RecruitQuartersDebugSeeder (Assets/Buildings/Recruit Quarters/Scripts) — debug-only recruit seeding via context menu, for testing capacity/levels before Dwarf (Stage 8) seeds real starting recruits. Safe to delete once Stage 8 lands.
+- ShopCoreManager.ModifyAppeal(int delta) — flat clamped-delta stub. Stage 5 needs to confirm this is sufficient or replace it with real Appeal rules (Room_Shop.md Section 18).
+- RecruitData.activeStatusEffects — data slot only, no effect/lockout logic yet. Druid (Stage 9) owns applying/treating these.

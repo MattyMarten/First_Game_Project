@@ -3,15 +3,15 @@ using UnityEngine;
 public class RecruitQuartersInteractable : PanelInteractable
 {
     [Header("Recruit References")]
-    [SerializeField] private RecruitQuartersActor recruitActor;
+    [SerializeField] private RecruitLocker recruitLocker;
     [SerializeField] private RecruitQuartersUI recruitQuartersUI;
 
     protected override void Awake()
     {
         base.Awake();
 
-        if (recruitActor == null)
-            recruitActor = GetComponentInParent<RecruitQuartersActor>();
+        if (recruitLocker == null)
+            recruitLocker = GetComponentInParent<RecruitLocker>();
 
         if (recruitQuartersUI == null)
             recruitQuartersUI = FindAnyObjectByType<RecruitQuartersUI>();
@@ -22,15 +22,19 @@ public class RecruitQuartersInteractable : PanelInteractable
 
     protected override void OnPanelOpened(PlayerInteraction player)
     {
-        if (recruitActor == null)
-            recruitActor = GetComponentInParent<RecruitQuartersActor>();
+        if (recruitLocker == null)
+            recruitLocker = GetComponentInParent<RecruitLocker>();
 
         if (recruitQuartersUI == null)
             recruitQuartersUI = FindAnyObjectByType<RecruitQuartersUI>();
 
-        if (recruitActor == null || recruitQuartersUI == null)
+        if (recruitLocker == null || recruitQuartersUI == null)
             return;
 
-        recruitQuartersUI.OpenForRecruit(recruitActor.RecruitData);
+        // Looked up live — works whether the bed is occupied, empty, or the recruit
+        // was just retired/reassigned. The locker itself never gets destroyed.
+        RecruitData recruit = recruitLocker.GetOccupyingRecruit();
+
+        recruitQuartersUI.OpenForRecruit(recruit);
     }
 }

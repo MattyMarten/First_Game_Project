@@ -63,6 +63,16 @@ public class ShopCoreManager : MonoBehaviour
 
     public int ShopLevel => shopLevel;
     public int ShopAppeal => shopAppeal;
+
+    /// <summary>
+    /// Temporary stub — Stage 5 will own full Appeal logic (decor, daily-report effects, etc.).
+    /// For now this just applies a clamped delta so other rooms (Recruit Quarters retire,
+    /// Quest Board accept/decline, Core failure penalty) have something real to call into.
+    /// </summary>
+    public void ModifyAppeal(int delta)
+    {
+        shopAppeal = Mathf.Clamp(shopAppeal + delta, 0, 100);
+    }
     public bool IsSpawnCycleRunning => spawnCycleRunning;
     public int RemainingDailyVisitors => remainingDailyVisitors;
 

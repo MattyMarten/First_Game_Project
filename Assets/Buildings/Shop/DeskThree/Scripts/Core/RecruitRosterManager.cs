@@ -4,22 +4,29 @@ using UnityEngine;
 
 public class RecruitRosterManager : MonoBehaviour
 {
-    [Header("Roster Limits")]
-    [SerializeField] private int maxFreeRecruitSlots = 4;
-    [SerializeField] private int maxPaidRecruitSlots = 4;
+    [Header("References")]
+    [SerializeField] private RecruitQuartersManager recruitQuartersManager;
 
     [Header("Hired Recruits")]
     [SerializeField] private List<RecruitData> hiredRecruits = new();
 
     public event Action OnRosterChanged;
 
-    public int MaxFreeRecruitSlots => maxFreeRecruitSlots;
-    public int MaxPaidRecruitSlots => maxPaidRecruitSlots;
-    public int MaxTotalRecruitSlots => maxFreeRecruitSlots + maxPaidRecruitSlots;
+    // Total roster capacity now comes from Recruit Quarters' level (4/6/8 — see
+    // Room_RecruitQuarters.md Section 16/17). RecruitType (Free/Paid) no longer defines
+    // separate capacity pools — it's kept only for hire-cost/visitor-flow purposes in the
+    // Shop's hire desk (see Code_Audit_KeepChangeCut.md, Recruit Quarters section).
+    public int MaxTotalRecruitSlots => recruitQuartersManager != null ? recruitQuartersManager.Capacity : 4;
 
     public int FreeRecruitCount => GetRecruitCountByType(RecruitType.Free);
     public int PaidRecruitCount => GetRecruitCountByType(RecruitType.Paid);
     public int TotalRecruitCount => hiredRecruits.Count;
+
+    private void Awake()
+    {
+        if (recruitQuartersManager == null)
+            recruitQuartersManager = FindAnyObjectByType<RecruitQuartersManager>();
+    }
 
     public List<RecruitData> GetAllHiredRecruits()
     {
@@ -44,29 +51,9 @@ public class RecruitRosterManager : MonoBehaviour
         return count;
     }
 
-    public bool HasFreeRecruitSpace()
-    {
-        return FreeRecruitCount < maxFreeRecruitSlots;
-    }
-
-    public bool HasPaidRecruitSpace()
-    {
-        return PaidRecruitCount < maxPaidRecruitSlots;
-    }
-
-    public bool NeedsMoreFreeRecruits()
-    {
-        return FreeRecruitCount < maxFreeRecruitSlots;
-    }
-
-    public bool CanSpawnPaidRecruits()
-    {
-        return FreeRecruitCount >= maxFreeRecruitSlots && HasPaidRecruitSpace();
-    }
-
     public bool IsRosterFull()
     {
-        return !HasFreeRecruitSpace() && !HasPaidRecruitSpace();
+        return TotalRecruitCount >= MaxTotalRecruitSlots;
     }
 
     public bool CanAddRecruit(RecruitData recruit)
@@ -74,13 +61,7 @@ public class RecruitRosterManager : MonoBehaviour
         if (recruit == null)
             return false;
 
-        if (recruit.recruitType == RecruitType.Free)
-            return HasFreeRecruitSpace();
-
-        if (recruit.recruitType == RecruitType.Paid)
-            return HasPaidRecruitSpace();
-
-        return false;
+        return TotalRecruitCount < MaxTotalRecruitSlots;
     }
 
     public bool TryAddRecruit(RecruitData recruit)

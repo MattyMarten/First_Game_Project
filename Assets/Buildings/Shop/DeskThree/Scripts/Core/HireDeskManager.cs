@@ -281,21 +281,20 @@ public class HireDeskManager : MonoBehaviour
         return HasTypeCapacityRemaining(recruitType);
     }
 
+    // STOPGAP (Stage 4): Recruit Quarters capacity is now a single 4/6/8 total, not a
+    // Free/Paid split, so this checks total roster capacity regardless of type. Stage 5
+    // replaces this whole method with the real free-slot-ratio recruit-visitor spawn
+    // formula from Room_Shop.md (25% floor).
     private bool HasTypeCapacityRemaining(RecruitType recruitType)
     {
-        int queuedOrDeskCount = GetReservedCountByType(recruitType);
-        int acceptedWalkingCount = recruitQuartersManager.GetPendingAcceptedRecruitCount(recruitType);
+        int totalQueuedOrDesk = GetReservedCountByType(RecruitType.Free) + GetReservedCountByType(RecruitType.Paid);
+        int totalAcceptedWalking = recruitQuartersManager.GetPendingAcceptedRecruitCount(RecruitType.Free)
+            + recruitQuartersManager.GetPendingAcceptedRecruitCount(RecruitType.Paid);
 
-        if (pendingRecruit != null && pendingRecruit.recruitType == recruitType)
-            queuedOrDeskCount = Mathf.Max(0, queuedOrDeskCount - 1);
+        if (pendingRecruit != null)
+            totalQueuedOrDesk = Mathf.Max(0, totalQueuedOrDesk - 1);
 
-        if (recruitType == RecruitType.Free)
-            return recruitRosterManager.FreeRecruitCount + queuedOrDeskCount + acceptedWalkingCount < recruitRosterManager.MaxFreeRecruitSlots;
-
-        if (recruitType == RecruitType.Paid)
-            return recruitRosterManager.PaidRecruitCount + queuedOrDeskCount + acceptedWalkingCount < recruitRosterManager.MaxPaidRecruitSlots;
-
-        return false;
+        return recruitRosterManager.TotalRecruitCount + totalQueuedOrDesk + totalAcceptedWalking < recruitRosterManager.MaxTotalRecruitSlots;
     }
 
     private void ClearPendingRecruit()

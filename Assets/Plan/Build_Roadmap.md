@@ -16,7 +16,7 @@ Stages are ordered by real dependency (what needs to exist before the next thing
 - An event/signal system other rooms can subscribe to ("phase changed to X") rather than polling.
 - A minimal Core Room stub — doesn't need real power/upkeep logic yet, just enough of a presence that other systems can ask "is the Core online" and get `true` for now.
 
-**Bring into the chat:** `Base_Master_Plan.md` (Section 3, Daily Base Structure), `Script_Architecture_Guidelines.md`, `Hierarchy_Guidelines.md`, this roadmap.
+**Bring into the chat:** `Room_Shop.md` (single consolidated doc — supersedes the old Version7/PATCH_NOTES/RefactorPlan/OwnershipMap split), `Code_Audit_KeepChangeCut.md` (Shop section), this roadmap.
 
 **Done when:** a test scene can manually step through all four phases, other scripts can subscribe to phase-change events, and `DayCounter.cs` is either replaced or absorbed into the new system.
 

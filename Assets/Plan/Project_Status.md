@@ -19,7 +19,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 2 | Core Room (power/upkeep) | DONE — CoreRoomManager (deposit, Normal/Warning/Offline, debug upgrade path) |
 | 3 | Workshop (Grinder/Goods/Gear Workbench) | DONE — CraftingRecipe confirmed clean of tier fields, Data Stick unlock-flag system added (RecipeUnlockManager, DataStickItem, DataStickConsumer) |
 | 3 | Gear Upgrade Station | DONE — GearUpgradeStationManager (LV1-3, mirrors Core's upgrade pattern), tier-chain fields added to UtilityCraftable, own UI/panel built |
-| 4 | Recruit Quarters | REFACTOR, solid foundation |
+| 4 | Recruit Quarters | DONE — capacity 4/6/8 by level (RecruitQuartersManager), unified roster capacity (RecruitRosterManager), retire action with appeal stub, Locker/Actor split (RecruitLocker persistent per-bed fixture, decoupled from RecruitQuartersActor) |
 | 5 | Shop | REFACTOR — mid-refactor already (see `Assets/Plan/ShopRefactorPlan_Phase1_Version2.md`) |
 | 6 | Merchant | REFACTOR (logic exists inside Shop, needs its own room) |
 | 7 | Quest Board | REFACTOR (partial logic exists inside Shop as `RequestBoardManager`) |
@@ -33,7 +33,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 11 | Dispatch Board | MISSING entirely |
 | 12 | Save/load, full integration | not started |
 
-**Current stage: **Current stage: Stage 4, Recruit Quarters, starting fresh.** Stage 3 (Workshop) complete: Grinder/Goods Workbench/Gear Workbench confirmed clean, Data Stick unlock system built, Gear Upgrade Station built from scratch. Suit Station still deferred (needs sector hazard design, per roadmap).**     // [update this line each session — e.g. "Stage 2, Core Room, in progress"]
+**Current stage: Stage 5, Shop, starting fresh.** Stage 4 (Recruit Quarters) complete: capacity/retire/debuff-slot all match Room_RecruitQuarters.md Section 22, plus an architecture fix mid-session (interactable moved from the recruit actor onto a new persistent RecruitLocker per bed — actor is transient and gets destroyed on retire/reassignment, locker never does). Known gap carried forward: base doesn't yet start "completely full" with the 4 fixed starting recruits — that's the Dwarf's job (Stage 8), not Recruit Quarters'.**     // [update this line each session — e.g. "Stage 6, Merchant, in progress"]
 
 ## Design decisions locked in (do not re-litigate these without a real reason)
 - No fixed expedition time limit — Suit Battery is the only limit on expedition duration.
@@ -51,6 +51,8 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 - Data Stick unlock state keyed by ScriptableObject asset `name` (used as a stable-enough recipe ID for now — revisit if asset renaming ever becomes a real problem).
 - Duplicate Data Stick acquisition pays out flat coins (default 10, placeholder — exact value still TBD per Room_Workshop.md Section 21).
 - Gear Upgrade Station's own upgrade level (LV1-3) is a debug-button stand-in for the Dwarf's Upgrade Board (Stage 8), same pattern as Core Room's `TryUpgrade()` — not the same thing as an individual item's tier.
+- Recruit capacity is a single total (4/6/8 by Recruit Quarters level), not split into Free/Paid pools. RecruitType (Free/Paid) still exists but now only affects hire cost/generation flavor in the Shop's hire desk, not capacity. HireDeskManager's capacity check was patched to match as a Stage 5 stopgap — Stage 5 should replace it properly with the free-slot-ratio recruit-visitor spawn formula (25% floor) from Room_Shop.md, not just leave the patch in place.
+- Recruit Quarters' locker is a persistent per-bed fixture (RecruitLocker), separate from the transient RecruitQuartersActor. RecruitQuartersInteractable lives on the locker and looks up its current occupant live (RecruitQuartersManager.GetRecruitAtBedIndex) — never cache a direct reference to the actor across an interaction, since retiring/reassigning destroys it.
 
 Full detail and reasoning for all of the above: `Session_Changelog_2026-07-19.md` and `Open_Architecture_Questions.md`.
 
