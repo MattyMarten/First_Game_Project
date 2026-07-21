@@ -1,3 +1,6 @@
+// Target path in your project: Assets/Buildings/Workshop/Machines/Goods station/Scripts/CraftingStationUI.cs
+// (this REPLACES your existing file of the same name — changes are marked with "// UNLOCK:")
+
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +22,7 @@ public class CraftingStationUI : MonoBehaviour
     // Used to track/hold detail state
     private CraftingGood selectedRecipe;
     private int maxCraftable;
-    
+
     [Header("Left panel/recipe list")]
     public Transform contentParent;
     public GameObject craftingRowPrefab;
@@ -32,6 +35,10 @@ public class CraftingStationUI : MonoBehaviour
     [Header("Output")]
     public GoodStorage goodStorage;
 
+    // UNLOCK: recipes are only shown here if RecipeUnlockManager says they're unlocked.
+    [Header("Unlock")]
+    public RecipeUnlockManager unlockManager;
+
     private List<GameObject> spawnedRows = new();
 
     void Awake()
@@ -41,7 +48,27 @@ public class CraftingStationUI : MonoBehaviour
 
         if (goodStorage == null)
             goodStorage = FindAnyObjectByType<GoodStorage>();
+
+        // UNLOCK:
+        if (unlockManager == null)
+            unlockManager = FindAnyObjectByType<RecipeUnlockManager>();
     }
+
+    void OnEnable()
+    {
+        // UNLOCK: refresh live if a Data Stick unlocks something while this panel is open.
+        if (unlockManager != null)
+            unlockManager.OnRecipeUnlocked += HandleRecipeUnlocked;
+    }
+
+    void OnDisable()
+    {
+        if (unlockManager != null)
+            unlockManager.OnRecipeUnlocked -= HandleRecipeUnlocked;
+    }
+
+    // UNLOCK:
+    private void HandleRecipeUnlocked(IUnlockableRecipe recipe) => RefreshUI();
 
     void Start() => RefreshUI();
 
@@ -51,7 +78,12 @@ public class CraftingStationUI : MonoBehaviour
             Destroy(go);
         spawnedRows.Clear();
 
-        foreach (var good in goods)
+        // UNLOCK: Unknown/unrevealed recipes (Room_Workshop.md Section 10) are not shown at all.
+        IEnumerable<CraftingGood> visibleGoods = unlockManager != null
+            ? goods.Where(g => g != null && unlockManager.IsUnlocked(g))
+            : goods;
+
+        foreach (var good in visibleGoods)
         {
             var go = Instantiate(craftingRowPrefab, contentParent);
             // Set item name (left panel)

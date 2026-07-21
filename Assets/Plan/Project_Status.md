@@ -17,8 +17,8 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 0 | Global Day/Phase System | DONE — DayPhaseSystem + CoreRoomManager stub + DayCounter absorbed |
 | 1 | Storage | DONE — CobaltCoinStorage + StorageSummaryUI added, materials/goods/utility covered |
 | 2 | Core Room (power/upkeep) | DONE — CoreRoomManager (deposit, Normal/Warning/Offline, debug upgrade path) |
-| 3 | Workshop (Grinder/Goods/Gear Workbench) | REFACTOR, mostly solid |
-| 3 | Gear Upgrade Station | MISSING |
+| 3 | Workshop (Grinder/Goods/Gear Workbench) | DONE — CraftingRecipe confirmed clean of tier fields, Data Stick unlock-flag system added (RecipeUnlockManager, DataStickItem, DataStickConsumer) |
+| 3 | Gear Upgrade Station | DONE — GearUpgradeStationManager (LV1-3, mirrors Core's upgrade pattern), tier-chain fields added to UtilityCraftable, own UI/panel built |
 | 4 | Recruit Quarters | REFACTOR, solid foundation |
 | 5 | Shop | REFACTOR — mid-refactor already (see `Assets/Plan/ShopRefactorPlan_Phase1_Version2.md`) |
 | 6 | Merchant | REFACTOR (logic exists inside Shop, needs its own room) |
@@ -33,7 +33,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 11 | Dispatch Board | MISSING entirely |
 | 12 | Save/load, full integration | not started |
 
-**Current stage: **Current stage: Stage 2, Core Room, complete. Next: Stage 3, Workshop.**     // [update this line each session — e.g. "Stage 2, Core Room, in progress"]
+**Current stage: **Current stage: Stage 4, Recruit Quarters, starting fresh.** Stage 3 (Workshop) complete: Grinder/Goods Workbench/Gear Workbench confirmed clean, Data Stick unlock system built, Gear Upgrade Station built from scratch. Suit Station still deferred (needs sector hazard design, per roadmap).**     // [update this line each session — e.g. "Stage 2, Core Room, in progress"]
 
 ## Design decisions locked in (do not re-litigate these without a real reason)
 - No fixed expedition time limit — Suit Battery is the only limit on expedition duration.
@@ -47,6 +47,10 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 - Sectors (named categories, e.g. N/Nature, L/Labs) replace the old fixed Forsaken City location entirely. Categories generate a fresh random instance every visit.
 - Away teams (Dispatch Board) resolve with independent per-recruit success/death rolls, separate from the player's own party (Recruit Selection).
 - Graveyard's replacement-decision system is a queue, not a single pending state (needed because away teams can produce multiple deaths at once).
+- Gear tiers are separate chained ScriptableObject assets (e.g. "Basic Axe" → "Basic Axe T2" → "Basic Axe T3"), linked via `nextTierItem` — not one asset with an internal level. Name stays conceptually the same; only the tier suffix changes. No stat differences between tiers yet (deferred until base items have real gameplay behavior).
+- Data Stick unlock state keyed by ScriptableObject asset `name` (used as a stable-enough recipe ID for now — revisit if asset renaming ever becomes a real problem).
+- Duplicate Data Stick acquisition pays out flat coins (default 10, placeholder — exact value still TBD per Room_Workshop.md Section 21).
+- Gear Upgrade Station's own upgrade level (LV1-3) is a debug-button stand-in for the Dwarf's Upgrade Board (Stage 8), same pattern as Core Room's `TryUpgrade()` — not the same thing as an individual item's tier.
 
 Full detail and reasoning for all of the above: `Session_Changelog_2026-07-19.md` and `Open_Architecture_Questions.md`.
 

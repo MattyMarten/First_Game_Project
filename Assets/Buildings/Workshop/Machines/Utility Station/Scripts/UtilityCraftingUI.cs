@@ -1,3 +1,6 @@
+// Target path in your project: Assets/Buildings/Workshop/Machines/Utility Station/Scripts/UtilityCraftingUI.cs
+// (this REPLACES your existing file of the same name — changes are marked with "// UNLOCK:")
+
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -33,6 +36,10 @@ public class UtilityCraftingUI : MonoBehaviour
     [SerializeField] private CraftedUtilityStorage craftedUtilityStorage;
     [SerializeField] private List<UtilityCraftable> craftables = new();
 
+    // UNLOCK: craftables are only shown here if RecipeUnlockManager says they're unlocked.
+    [Header("Unlock")]
+    [SerializeField] private RecipeUnlockManager unlockManager;
+
     [Header("Category Highlight")]
     [SerializeField] private Color selectedCategoryColor = Color.red;
     [SerializeField] private Color normalCategoryColor = Color.white;
@@ -59,11 +66,31 @@ public class UtilityCraftingUI : MonoBehaviour
         if (input == null)
             input = FindAnyObjectByType<StarterAssetsInputs>();
 
+        // UNLOCK:
+        if (unlockManager == null)
+            unlockManager = FindAnyObjectByType<RecipeUnlockManager>();
+
         if (panelRoot == null)
             panelRoot = gameObject;
 
         SetupCategoryButtons();
     }
+
+    private void OnEnable()
+    {
+        // UNLOCK: refresh live if a Data Stick unlocks something while this panel is open.
+        if (unlockManager != null)
+            unlockManager.OnRecipeUnlocked += HandleRecipeUnlocked;
+    }
+
+    private void OnDisable()
+    {
+        if (unlockManager != null)
+            unlockManager.OnRecipeUnlocked -= HandleRecipeUnlocked;
+    }
+
+    // UNLOCK:
+    private void HandleRecipeUnlocked(IUnlockableRecipe recipe) => BuildRecipeList();
 
     private void Start()
     {
@@ -114,7 +141,11 @@ public class UtilityCraftingUI : MonoBehaviour
 
         spawnedRows.Clear();
 
-        IEnumerable<UtilityCraftable> filteredCraftables = craftables.Where(c => c != null && c.category == selectedCategory);
+        // UNLOCK: Unknown/unrevealed craftables (Room_Workshop.md Section 10) are not shown at all.
+        IEnumerable<UtilityCraftable> filteredCraftables = craftables.Where(c =>
+            c != null &&
+            c.category == selectedCategory &&
+            (unlockManager == null || unlockManager.IsUnlocked(c)));
 
         foreach (UtilityCraftable craftable in filteredCraftables)
         {
