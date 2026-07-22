@@ -6,7 +6,15 @@ public class RecruitGenerator : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private RecruitRosterManager recruitRosterManager;
-    [SerializeField] private HireDeskManager hireDeskManager;
+    [SerializeField] private ServiceDeskManager serviceDeskManager;
+
+    // PLACEHOLDER (Known_Temporary_Systems.md candidate): capacity is unified now
+    // (Stage 4/5 — RecruitType no longer splits capacity), so Free vs Paid is no
+    // longer decided by "which type still has room." This ratio is an arbitrary
+    // stand-in until there's a real design rule for how often a recruit visitor
+    // should be Free vs Paid.
+    [Header("Free vs Paid Ratio (placeholder, tune freely)")]
+    [SerializeField, Range(0f, 1f)] private float freeRecruitChance = 0.6f;
 
     [Header("Model Prefabs")]
     [SerializeField] private List<GameObject> freeRecruitModelPrefabs = new();
@@ -65,42 +73,34 @@ public class RecruitGenerator : MonoBehaviour
         if (recruitRosterManager == null)
             recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
 
-        if (hireDeskManager == null)
-            hireDeskManager = FindAnyObjectByType<HireDeskManager>();
+        if (serviceDeskManager == null)
+            serviceDeskManager = FindAnyObjectByType<ServiceDeskManager>();
     }
 
     public RecruitData GenerateRecruit()
     {
-        if (recruitRosterManager == null || hireDeskManager == null)
+        if (recruitRosterManager == null || serviceDeskManager == null)
         {
             Debug.LogWarning("RecruitGenerator: Missing required manager reference.", this);
             return null;
         }
 
-        bool canGenerateFree = hireDeskManager.CanAcceptRecruitTypeInPipeline(RecruitType.Free);
-        bool canGeneratePaid = hireDeskManager.CanAcceptRecruitTypeInPipeline(RecruitType.Paid);
+        if (!serviceDeskManager.HasRecruitCapacityRemaining())
+            return null;
 
-        if (canGenerateFree)
-            return CreateRecruit(RecruitType.Free);
+        RecruitType chosenType = UnityEngine.Random.value < freeRecruitChance
+            ? RecruitType.Free
+            : RecruitType.Paid;
 
-        if (canGeneratePaid)
-            return CreateRecruit(RecruitType.Paid);
-
-        return null;
+        return CreateRecruit(chosenType);
     }
 
     public bool CanGenerateRecruit()
     {
-        if (recruitRosterManager == null || hireDeskManager == null)
+        if (recruitRosterManager == null || serviceDeskManager == null)
             return false;
 
-        if (hireDeskManager.CanAcceptRecruitTypeInPipeline(RecruitType.Free))
-            return true;
-
-        if (hireDeskManager.CanAcceptRecruitTypeInPipeline(RecruitType.Paid))
-            return true;
-
-        return false;
+        return serviceDeskManager.HasRecruitCapacityRemaining();
     }
 
     private RecruitData CreateRecruit(RecruitType recruitType)

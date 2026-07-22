@@ -3,8 +3,10 @@ using UnityEngine;
 public class ShopCoreManager : MonoBehaviour
 {
     // Whole-Shop coordinator. Owns Shop-wide state and future shared systems.
-    // Desk-specific behavior remains in ShopManager (Desk 1), ServiceDeskManager, and HireDeskManager.
-    // Future whole-Shop ownership lives here: Appeal, daily visitor flow, spawn cycle, and report tracking.
+    // Desk-specific behavior remains in ShopManager (Desk 1) and ServiceDeskManager
+    // (Desk 2 — now also handles recruit visitors, merged in from the old Desk Three).
+    // Appeal (buyer count + sale price) and daily-report tracking live here for real.
+    // Decor and Dirt are still not built anywhere in the project — separate future step.
 
     public enum ShopSpawnType
     {
@@ -21,7 +23,10 @@ public class ShopCoreManager : MonoBehaviour
     [Header("Desk Managers")]
     [SerializeField] private ShopManager desk1Manager;
     [SerializeField] private ServiceDeskManager desk2Manager;
-    [SerializeField] private HireDeskManager desk3Manager;
+
+    [Header("Recruit Spawn Chance")]
+    [SerializeField] private RecruitRosterManager recruitRosterManager;
+    [SerializeField, Range(0f, 1f)] private float recruitSpawnChanceFloor = 0.25f;
 
     [Header("Spawn Cycle Settings")]
     [SerializeField] private float sharedSpawnInterval = 8f;
@@ -34,7 +39,6 @@ public class ShopCoreManager : MonoBehaviour
     [Header("Spawn Executors")]
     [SerializeField] private ShopBuyerSpawner shopBuyerSpawner;
     [SerializeField] private ServiceVisitorSpawner serviceVisitorSpawner;
-    [SerializeField] private HireVisitorSpawner hireVisitorSpawner;
 
     [Header("Future Shop Systems")]
     [SerializeField] private DayCounter dayCounter;
@@ -47,27 +51,34 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private Transform sharedSpawnPoint;
     [SerializeField] private Transform sharedExitPoint;
 
+    [Header("Cobalt Coin Bank")]
+    [SerializeField] private CobaltCoinStorage cobaltCoinStorage;
+
+    [Header("Daily Report (session-only, resets each shop opening)")]
+    [SerializeField] private int itemsSoldToday;
+    [SerializeField] private int visitorsSeenToday;
+    [SerializeField] private int coinsEarnedToday;
+
 
     public bool IsShopOpen => shopOpen;
 
     public ShopManager Desk1Manager => desk1Manager;
     public ServiceDeskManager Desk2Manager => desk2Manager;
-    public HireDeskManager Desk3Manager => desk3Manager;
 
     public float SharedSpawnInterval => sharedSpawnInterval;
     public float CurrentSpawnTimer => currentSpawnTimer;
 
     public ShopBuyerSpawner ShopBuyerSpawner => shopBuyerSpawner;
     public ServiceVisitorSpawner ServiceVisitorSpawner => serviceVisitorSpawner;
-    public HireVisitorSpawner HireVisitorSpawner => hireVisitorSpawner;
 
     public int ShopLevel => shopLevel;
     public int ShopAppeal => shopAppeal;
 
     /// <summary>
-    /// Temporary stub — Stage 5 will own full Appeal logic (decor, daily-report effects, etc.).
-    /// For now this just applies a clamped delta so other rooms (Recruit Quarters retire,
-    /// Quest Board accept/decline, Core failure penalty) have something real to call into.
+    /// Applies a clamped Appeal delta. Buyer-count and sale-price effects of the new
+    /// Appeal value are now real (see GetBuyerCountAppealModifier / GetAppealSaleMultiplier).
+    /// Decor's own Appeal contributions are still a separate, not-yet-built system —
+    /// this method only handles the delta itself, decor will call into it once it exists.
     /// </summary>
     public void ModifyAppeal(int delta)
     {
@@ -78,6 +89,57 @@ public class ShopCoreManager : MonoBehaviour
 
     public Transform SharedSpawnPoint => sharedSpawnPoint;
     public Transform SharedExitPoint => sharedExitPoint;
+
+    // Shop Monitor read surface (Room_Shop.md Section 6/28).
+    public int ItemsSoldToday => itemsSoldToday;
+    public int VisitorsSeenToday => visitorsSeenToday;
+    public int CoinsEarnedToday => coinsEarnedToday;
+    public int TotalBaseCobaltCoins => cobaltCoinStorage != null ? cobaltCoinStorage.CoinCount : 0;
+    public event System.Action OnDailyReportChanged;
+
+    /// <summary>
+    /// Call this whenever a sold good's daily-report counters need updating. Does NOT
+    /// deposit into CobaltCoinStorage itself — the caller (ShopManager.AddMoney, etc.)
+    /// is responsible for the actual deposit, since Shop-local money paths already route
+    /// there. This just keeps the Shop Monitor's "items sold / coins earned today" numbers
+    /// correct without depositing twice.
+    /// </summary>
+    public void RecordItemSold(int coinAmount)
+    {
+        if (coinAmount <= 0)
+            return;
+
+        itemsSoldToday++;
+        coinsEarnedToday += coinAmount;
+        OnDailyReportChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Same as RecordItemSold but for non-item income (e.g. talking-visitor dialogue
+    /// rewards) that shouldn't count toward "items sold today."
+    /// </summary>
+    public void RecordCoinsEarned(int coinAmount)
+    {
+        if (coinAmount <= 0)
+            return;
+
+        coinsEarnedToday += coinAmount;
+        OnDailyReportChanged?.Invoke();
+    }
+
+    private void RecordVisitorSpawned()
+    {
+        visitorsSeenToday++;
+        OnDailyReportChanged?.Invoke();
+    }
+
+    private void ResetDailyReport()
+    {
+        itemsSoldToday = 0;
+        visitorsSeenToday = 0;
+        coinsEarnedToday = 0;
+        OnDailyReportChanged?.Invoke();
+    }
 
     private readonly System.Collections.Generic.List<ShopSpawnType> dailyVisitorSpawnList = new(); 
     public int DailyVisitorSpawnCount => dailyVisitorSpawnList.Count;
@@ -96,8 +158,11 @@ public class ShopCoreManager : MonoBehaviour
         if (serviceVisitorSpawner == null)
             serviceVisitorSpawner = FindAnyObjectByType<ServiceVisitorSpawner>();
 
-        if (hireVisitorSpawner == null)
-            hireVisitorSpawner = FindAnyObjectByType<HireVisitorSpawner>();
+        if (recruitRosterManager == null)
+            recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
+
+        if (cobaltCoinStorage == null)
+            cobaltCoinStorage = FindAnyObjectByType<CobaltCoinStorage>();
     }
 
     private void Update()
@@ -133,6 +198,7 @@ public class ShopCoreManager : MonoBehaviour
     {
         shopOpen = true;
         EndSpawnAttemptCycle();
+        ResetDailyReport();
         BuildDailyVisitorSpawnList();
         ResetSpawnTimer();
 
@@ -208,12 +274,9 @@ public class ShopCoreManager : MonoBehaviour
             case ShopSpawnType.Desk2TalkingVisitor:
             case ShopSpawnType.Desk2RequestVisitor:
             case ShopSpawnType.Desk2MerchantVisitor:
+            case ShopSpawnType.Desk3HireVisitor:
                 return serviceVisitorSpawner != null &&
                        serviceVisitorSpawner.TrySpawnSpecificVisitor(spawnType, sharedSpawnPoint, sharedExitPoint);
-
-            case ShopSpawnType.Desk3HireVisitor:
-                return hireVisitorSpawner != null &&
-                       hireVisitorSpawner.TrySpawnFromTrafficManager(sharedSpawnPoint, sharedExitPoint);
         }
 
         return false;
@@ -257,15 +320,28 @@ public class ShopCoreManager : MonoBehaviour
         return IsMerchantVisitDay() ? 1 : 0;
     }
 
+    // Recruit visitor generation rule (Room_Shop.md Section 13): not a flat level-based
+    // range anymore. Chance = free recruit slots / total recruit slots, floored at 25%.
+    // 0 free slots -> 0% chance, no recruit visitor at all that day. Rolled once here,
+    // during daily pool generation at shop opening. Max 1 recruit visitor per day.
     private int GetPlannedDesk3HireVisitorCount()
     {
-        return GetEffectiveShopLevel() switch
-        {
-            1 => Random.Range(0, 2), // 0-1
-            2 => 1,                  // exactly 1
-            3 => Random.Range(1, 3), // 1-2
-            _ => Random.Range(1, 3)
-        };
+        if (recruitRosterManager == null)
+            return 0;
+
+        int totalSlots = recruitRosterManager.MaxTotalRecruitSlots;
+
+        if (totalSlots <= 0)
+            return 0;
+
+        int freeSlots = Mathf.Max(0, totalSlots - recruitRosterManager.TotalRecruitCount);
+
+        if (freeSlots <= 0)
+            return 0;
+
+        float spawnChance = Mathf.Max((float)freeSlots / totalSlots, recruitSpawnChanceFloor);
+
+        return Random.value < spawnChance ? 1 : 0;
     }
 
     private bool IsMerchantVisitDay()
@@ -279,21 +355,29 @@ public class ShopCoreManager : MonoBehaviour
         return currentDay % 3 == 0;
     }
 
+    // Appeal Rules (Room_Shop.md Section 18). Single source of truth for both the
+    // buyer-count modifier and the sale-price multiplier — ShopManager reads the
+    // price multiplier from here instead of keeping its own copy of the table.
     private int GetBuyerCountAppealModifier()
     {
-        if (shopAppeal >= 80)
-            return 2;
+        if (shopAppeal <= 10) return -3;
+        if (shopAppeal <= 20) return -2;
+        if (shopAppeal <= 40) return -1;
+        if (shopAppeal <= 60) return 0;
+        if (shopAppeal <= 80) return 1;
+        if (shopAppeal <= 90) return 2;
+        return 3;
+    }
 
-        if (shopAppeal >= 60)
-            return 1;
-
-        if (shopAppeal >= 40)
-            return 0;
-
-        if (shopAppeal >= 20)
-            return -1;
-
-        return -2;
+    public float GetAppealSaleMultiplier()
+    {
+        if (shopAppeal <= 10) return 0.80f;
+        if (shopAppeal <= 20) return 0.85f;
+        if (shopAppeal <= 40) return 0.90f;
+        if (shopAppeal <= 60) return 1.00f;
+        if (shopAppeal <= 80) return 1.10f;
+        if (shopAppeal <= 90) return 1.15f;
+        return 1.20f;
     }
 
     private int GetBaseBuyerCountForShopLevel()
@@ -339,6 +423,7 @@ public class ShopCoreManager : MonoBehaviour
 
         if (CanSpawnType(plannedSpawnType) && TrySpawnSpecificType(plannedSpawnType))
         {
+            RecordVisitorSpawned();
             RemoveNextDailyVisitor();
             EndSpawnAttemptCycle();
             spawnCycleRunning = dailyVisitorSpawnList.Count > 0;
@@ -403,10 +488,8 @@ public class ShopCoreManager : MonoBehaviour
             case ShopSpawnType.Desk2TalkingVisitor:
             case ShopSpawnType.Desk2RequestVisitor:
             case ShopSpawnType.Desk2MerchantVisitor:
-                return serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor();
-
             case ShopSpawnType.Desk3HireVisitor:
-                return hireVisitorSpawner != null && hireVisitorSpawner.CanSpawnHireVisitor();
+                return serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor(spawnType);
 
             default:
                 return false;

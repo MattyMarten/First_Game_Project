@@ -9,7 +9,8 @@ public class ServiceDeskManager : MonoBehaviour
         None,
         Request,
         Dialogue,
-        MerchantOffer
+        MerchantOffer,
+        Recruit
     }
 
     [Header("Core Manager")]
@@ -21,6 +22,10 @@ public class ServiceDeskManager : MonoBehaviour
     [SerializeField] private DialogueInfoManager dialogueInfoManager;
     [SerializeField] private CraftedUtilityStorage craftedUtilityStorage;
     [SerializeField] private RawMaterialStorage rawMaterialStorage;
+
+    [Header("Recruit References (merged in from the old Desk Three)")]
+    [SerializeField] private RecruitRosterManager recruitRosterManager;
+    [SerializeField] private RecruitQuartersManager recruitQuartersManager;
 
     [Header("Queue Spots")]
     [SerializeField] private List<ServiceQueueSpot> queueSpots = new();
@@ -34,6 +39,7 @@ public class ServiceDeskManager : MonoBehaviour
     private ShopRequestData pendingRequest;
     private DialogueEncounterData pendingDialogue;
     private GeneratedMerchantVisit pendingMerchantVisit;
+    private RecruitData pendingRecruit;
     private ServiceInteractionType currentInteractionType = ServiceInteractionType.None;
 
     private string currentDialogueResultText;
@@ -47,6 +53,7 @@ public class ServiceDeskManager : MonoBehaviour
     public bool HasPendingRequest => currentInteractionType == ServiceInteractionType.Request && pendingVisitor != null && pendingRequest != null;
     public bool HasPendingDialogue => currentInteractionType == ServiceInteractionType.Dialogue && pendingVisitor != null && pendingDialogue != null;
     public bool HasPendingMerchantVisit => currentInteractionType == ServiceInteractionType.MerchantOffer && pendingVisitor != null && pendingMerchantVisit != null;
+    public bool HasPendingRecruit => currentInteractionType == ServiceInteractionType.Recruit && pendingVisitor != null && pendingRecruit != null;
 
     public bool HasPendingInteraction => currentInteractionType != ServiceInteractionType.None && pendingVisitor != null;
     public bool IsInteractionActive => HasPendingInteraction;
@@ -54,6 +61,7 @@ public class ServiceDeskManager : MonoBehaviour
     public ShopRequestData PendingRequest => pendingRequest;
     public DialogueEncounterData PendingDialogue => pendingDialogue;
     public GeneratedMerchantVisit PendingMerchantVisit => pendingMerchantVisit;
+    public RecruitData PendingRecruit => pendingRecruit;
 
     public ServiceInteractionType CurrentInteractionType => currentInteractionType;
 
@@ -89,6 +97,12 @@ public class ServiceDeskManager : MonoBehaviour
 
         if (rawMaterialStorage == null)
             rawMaterialStorage = FindAnyObjectByType<RawMaterialStorage>();
+
+        if (recruitRosterManager == null)
+            recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
+
+        if (recruitQuartersManager == null)
+            recruitQuartersManager = FindAnyObjectByType<RecruitQuartersManager>();
     }
 
     public bool CanAcceptAnotherVisitor()
@@ -254,6 +268,7 @@ public class ServiceDeskManager : MonoBehaviour
         pendingRequest = request;
         pendingDialogue = null;
         pendingMerchantVisit = null;
+        pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.Request;
         currentDialogueResultText = null;
 
@@ -276,6 +291,7 @@ public class ServiceDeskManager : MonoBehaviour
         pendingRequest = null;
         pendingDialogue = dialogue;
         pendingMerchantVisit = null;
+        pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.Dialogue;
         currentDialogueResultText = null;
 
@@ -298,6 +314,7 @@ public class ServiceDeskManager : MonoBehaviour
         pendingRequest = null;
         pendingDialogue = null;
         pendingMerchantVisit = merchantVisit;
+        pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.MerchantOffer;
         currentDialogueResultText = null;
 
@@ -306,6 +323,136 @@ public class ServiceDeskManager : MonoBehaviour
         OnPendingInteractionChanged?.Invoke();
         //Debug.Log($"Pending merchant visit created: {merchantVisit.merchantName}");
         return true;
+    }
+
+    public bool TryCreatePendingRecruitOffer(ServiceVisitorNPC visitor, RecruitData recruit)
+    {
+        if (visitor == null || recruit == null)
+            return false;
+
+        if (currentInteractionType != ServiceInteractionType.None)
+            return false;
+
+        pendingVisitor = visitor;
+        pendingRequest = null;
+        pendingDialogue = null;
+        pendingMerchantVisit = null;
+        pendingRecruit = recruit;
+        currentInteractionType = ServiceInteractionType.Recruit;
+        currentDialogueResultText = null;
+
+        ResetMerchantState();
+
+        OnPendingInteractionChanged?.Invoke();
+        return true;
+    }
+
+    // A paid recruit can be turned away; a free recruit cannot (matches the old
+    // HireDeskManager rule).
+    public bool CanDeclinePendingRecruit()
+    {
+        if (!HasPendingRecruit)
+            return false;
+
+        return pendingRecruit.IsPaidRecruit;
+    }
+
+    public bool AcceptPendingRecruit()
+    {
+        if (!HasPendingRecruit)
+            return false;
+
+        if (recruitRosterManager == null || recruitQuartersManager == null)
+            return false;
+
+        ServiceVisitorNPC visitor = pendingVisitor;
+        RecruitData recruit = pendingRecruit;
+
+        if (visitor == null || recruit == null)
+            return false;
+
+        if (!HasRecruitCapacityRemaining())
+            return false;
+
+        if (!recruitQuartersManager.TryPrepareBedForRecruit(recruit, out RecruitBedSlot bedSlot))
+            return false;
+
+        ClearPendingInteraction();
+        ReleaseDeskAccess(visitor);
+
+        if (visitor is HireVisitorNPC hireVisitor)
+            hireVisitor.OnRecruitAcceptedAndSendToBed(bedSlot);
+
+        return true;
+    }
+
+    public bool DeclinePendingRecruit()
+    {
+        if (!HasPendingRecruit)
+            return false;
+
+        if (!CanDeclinePendingRecruit())
+            return false;
+
+        ServiceVisitorNPC visitor = pendingVisitor;
+
+        ClearPendingInteraction();
+
+        if (visitor != null)
+        {
+            ReleaseDeskAccess(visitor);
+            visitor.OnInteractionDeclined();
+        }
+
+        return true;
+    }
+
+    public bool FinalizeAcceptedRecruit(RecruitData recruit)
+    {
+        if (recruit == null || recruitRosterManager == null)
+            return false;
+
+        if (!recruitRosterManager.CanAddRecruit(recruit))
+            return false;
+
+        return recruitRosterManager.TryAddRecruit(recruit);
+    }
+
+    // Replaces HireDeskManager's old STOPGAP capacity check. Recruit capacity is a
+    // single total (Room_RecruitQuarters.md), so this counts any HireVisitorNPC
+    // currently at the desk or in the shared queue, plus recruits already accepted
+    // and walking to a bed, against the roster's total slots.
+    public bool HasRecruitCapacityRemaining()
+    {
+        if (recruitRosterManager == null || recruitQuartersManager == null)
+            return false;
+
+        int queuedOrDeskRecruitCount = GetQueuedOrDeskRecruitCount();
+
+        int pendingAcceptedWalking = recruitQuartersManager.GetPendingAcceptedRecruitCount(RecruitType.Free)
+            + recruitQuartersManager.GetPendingAcceptedRecruitCount(RecruitType.Paid);
+
+        if (pendingRecruit != null)
+            queuedOrDeskRecruitCount = Mathf.Max(0, queuedOrDeskRecruitCount - 1);
+
+        return recruitRosterManager.TotalRecruitCount + queuedOrDeskRecruitCount + pendingAcceptedWalking
+            < recruitRosterManager.MaxTotalRecruitSlots;
+    }
+
+    private int GetQueuedOrDeskRecruitCount()
+    {
+        int count = 0;
+
+        if (deskAssignedVisitor is HireVisitorNPC deskHireVisitor && deskHireVisitor.GetRecruitData() != null)
+            count++;
+
+        for (int i = 0; i < waitingQueue.Count; i++)
+        {
+            if (waitingQueue[i] is HireVisitorNPC queuedHireVisitor && queuedHireVisitor.GetRecruitData() != null)
+                count++;
+        }
+
+        return count;
     }
 
     public void AcceptPendingRequest()
@@ -355,7 +502,12 @@ public class ServiceDeskManager : MonoBehaviour
         DialogueChoiceData chosenChoice = pendingDialogue.choices[choiceIndex];
 
         if (chosenChoice.rewardMoney > 0 && shopManager != null)
+        {
             shopManager.AddMoney(chosenChoice.rewardMoney);
+
+            if (shopCoreManager != null)
+                shopCoreManager.RecordCoinsEarned(chosenChoice.rewardMoney);
+        }
 
         if (chosenChoice.givesInfo && !string.IsNullOrWhiteSpace(chosenChoice.infoText))
         {
@@ -600,6 +752,7 @@ public class ServiceDeskManager : MonoBehaviour
         pendingRequest = null;
         pendingDialogue = null;
         pendingMerchantVisit = null;
+        pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.None;
         currentDialogueResultText = null;
 

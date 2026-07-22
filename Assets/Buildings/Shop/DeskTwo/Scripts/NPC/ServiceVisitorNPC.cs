@@ -187,7 +187,7 @@ public abstract class ServiceVisitorNPC : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private bool HasReachedDestination()
+    protected bool HasReachedDestination()
     {
         if (agent == null)
             return false;

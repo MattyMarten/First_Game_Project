@@ -17,6 +17,9 @@ public class ShopManager : MonoBehaviour
     [Header("Stored Goods")]
     [SerializeField] private GoodStorage goodStorage;
 
+    [Header("Cobalt Coin Bank")]
+    [SerializeField] private CobaltCoinStorage cobaltCoinStorage;
+
     [Header("Desk")]
     [SerializeField] private ShopDeskVisuals shopDeskVisuals;
 
@@ -39,7 +42,12 @@ public class ShopManager : MonoBehaviour
     private string pendingBuyerDialogue;
 
     public bool IsShopOpen => shopCoreManager != null ? shopCoreManager.IsShopOpen : shopOpen;
-    public int CurrentMoney => currentMoney;
+    // NOTE: this used to be a private local int, fully disconnected from the base's
+    // real currency (CobaltCoinStorage, built in Stage 1). Per Room_Shop.md Section 8,
+    // a sold item must add cobalt coins directly to the base's actual bank — so this
+    // now proxies through CobaltCoinStorage. currentMoney is kept only as an offline
+    // fallback for scenes where no CobaltCoinStorage has been wired up yet.
+    public int CurrentMoney => cobaltCoinStorage != null ? cobaltCoinStorage.CoinCount : currentMoney;
 
     public bool HasPendingSale => pendingBuyer != null && pendingGood != null;
     public bool IsInteractionActive => HasPendingSale;
@@ -71,6 +79,9 @@ public class ShopManager : MonoBehaviour
 
         if (shopDeskVisuals == null)
             shopDeskVisuals = FindAnyObjectByType<ShopDeskVisuals>();
+
+        if (cobaltCoinStorage == null)
+            cobaltCoinStorage = FindAnyObjectByType<CobaltCoinStorage>();
     }
 
     public void OpenShop()
@@ -90,16 +101,29 @@ public class ShopManager : MonoBehaviour
         if (amount <= 0)
             return;
 
-        currentMoney += amount;
+        if (cobaltCoinStorage != null)
+            cobaltCoinStorage.Add(amount);
+        else
+            currentMoney += amount;
+
         OnMoneyChanged?.Invoke();
 
-        Debug.Log($"Shop earned {amount}. Total money: {currentMoney}");
+        Debug.Log($"Shop earned {amount}. Total money: {CurrentMoney}");
     }
 
     public bool SpendMoney(int amount)
     {
         if (amount <= 0)
             return false;
+
+        if (cobaltCoinStorage != null)
+        {
+            if (!cobaltCoinStorage.TrySpend(amount))
+                return false;
+
+            OnMoneyChanged?.Invoke();
+            return true;
+        }
 
         if (currentMoney < amount)
             return false;
@@ -193,6 +217,9 @@ public class ShopManager : MonoBehaviour
             return;
 
         AddMoney(pendingPrice);
+
+        if (shopCoreManager != null)
+            shopCoreManager.RecordItemSold(pendingPrice);
 
         Debug.Log($"Sale accepted: {pendingGood.goodName} sold for {pendingPrice}.");
 
@@ -504,23 +531,12 @@ public class ShopManager : MonoBehaviour
         return Mathf.Max(0, finalPrice);
     }
 
+    // Delegates to ShopCoreManager.GetAppealSaleMultiplier() — the single source of
+    // truth for Appeal's price effect (Room_Shop.md Section 18), instead of keeping
+    // a second, separately-maintained copy of the same table here.
     private float GetAppealPriceMultiplier()
     {
-        int appeal = shopCoreManager != null ? shopCoreManager.ShopAppeal : 50;
-
-        if (appeal >= 80)
-            return 1.20f;
-
-        if (appeal >= 60)
-            return 1.10f;
-
-        if (appeal >= 40)
-            return 1.00f;
-
-        if (appeal >= 20)
-            return 0.90f;
-
-        return 0.80f;
+        return shopCoreManager != null ? shopCoreManager.GetAppealSaleMultiplier() : 1.00f;
     }
 
     private float GetNegotiationPriceMultiplier(ShopBuyerNPC buyer)

@@ -33,7 +33,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 11 | Dispatch Board | MISSING entirely |
 | 12 | Save/load, full integration | not started |
 
-**Current stage: Stage 5, Shop, starting fresh.** Stage 4 (Recruit Quarters) complete: capacity/retire/debuff-slot all match Room_RecruitQuarters.md Section 22, plus an architecture fix mid-session (interactable moved from the recruit actor onto a new persistent RecruitLocker per bed — actor is transient and gets destroyed on retire/reassignment, locker never does). Known gap carried forward: base doesn't yet start "completely full" with the 4 fixed starting recruits — that's the Dwarf's job (Stage 8), not Recruit Quarters'.**     // [update this line each session — e.g. "Stage 6, Merchant, in progress"]
+**Current stage: Stage 5, Shop — Desk Two/Three merged (one Service Desk handles talking/request/recruit), Quest Board + Info Room extracted, Appeal + daily-report real. Remaining: Decor system, Dirt system, full Section 19 price pipeline. Merchant still physically in Shop/DeskTwo, deferred to Stage 6.**     // [update this line each session — e.g. "Stage 6, Merchant, in progress"]
 
 ## Design decisions locked in (do not re-litigate these without a real reason)
 - No fixed expedition time limit — Suit Battery is the only limit on expedition duration.

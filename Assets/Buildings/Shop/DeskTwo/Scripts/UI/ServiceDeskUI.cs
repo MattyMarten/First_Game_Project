@@ -53,6 +53,26 @@ public class ServiceDeskUI : MonoBehaviour
     [SerializeField] private Button merchantBuyButton;
     [SerializeField] private Button merchantGoodbyeButton;
 
+    [Header("Recruit UI (merged in from the old Desk Three)")]
+    [SerializeField] private GameObject recruitSection;
+    [SerializeField] private TMP_Text recruitNameText;
+    [SerializeField] private TMP_Text recruitCostText;
+    [SerializeField] private TMP_Text recruitMotivationText;
+    [SerializeField] private GameObject recruitStatsWindow;
+    [SerializeField] private TMP_Text recruitClassText;
+    [SerializeField] private TMP_Text recruitLevelText;
+    [SerializeField] private TMP_Text recruitHealthText;
+    [SerializeField] private TMP_Text recruitStrengthText;
+    [SerializeField] private TMP_Text recruitEnduranceText;
+    [SerializeField] private TMP_Text recruitSenseText;
+    [SerializeField] private TMP_Text recruitStealthText;
+    [SerializeField] private Button recruitViewStatsButton;
+    [SerializeField] private TMP_Text recruitViewStatsButtonText;
+    [SerializeField] private Button recruitAcceptButton;
+    [SerializeField] private Button recruitDeclineButton;
+
+    private bool isShowingRecruitStats;
+
     private readonly List<GameObject> spawnedMerchantRows = new();
 
     private void Awake()
@@ -83,6 +103,20 @@ public class ServiceDeskUI : MonoBehaviour
 
         if (merchantGoodbyeButton != null)
             merchantGoodbyeButton.onClick.AddListener(GoodbyeMerchant);
+
+        if (recruitViewStatsButton != null)
+            recruitViewStatsButton.onClick.AddListener(ToggleRecruitStatsWindow);
+
+        if (recruitAcceptButton != null)
+            recruitAcceptButton.onClick.AddListener(AcceptRecruit);
+
+        if (recruitDeclineButton != null)
+            recruitDeclineButton.onClick.AddListener(DeclineRecruit);
+
+        if (recruitStatsWindow != null)
+            recruitStatsWindow.SetActive(false);
+
+        HideAllSections();
 
         SetupDialogueButtons();
     }
@@ -135,6 +169,10 @@ public class ServiceDeskUI : MonoBehaviour
 
             case ServiceDeskManager.ServiceInteractionType.MerchantOffer:
                 RefreshMerchantUI();
+                break;
+
+            case ServiceDeskManager.ServiceInteractionType.Recruit:
+                RefreshRecruitUI();
                 break;
         }
     }
@@ -401,6 +439,9 @@ public class ServiceDeskUI : MonoBehaviour
 
         if (merchantSection != null)
             merchantSection.SetActive(false);
+
+        if (recruitSection != null)
+            recruitSection.SetActive(false);
     }
 
     public void AcceptRequest()
@@ -528,6 +569,162 @@ public class ServiceDeskUI : MonoBehaviour
 
         serviceDeskManager.FinishMerchantVisit();
         RefreshUI();
+    }
+
+    private void RefreshRecruitUI()
+    {
+        if (recruitSection != null)
+            recruitSection.SetActive(true);
+
+        RecruitData recruit = serviceDeskManager.PendingRecruit;
+        bool hasRecruit = serviceDeskManager.HasPendingRecruit && recruit != null;
+
+        if (!hasRecruit)
+        {
+            isShowingRecruitStats = false;
+            ShowEmptyRecruitState();
+            RefreshRecruitStatsWindowState();
+            return;
+        }
+
+        ShowRecruitInfo(recruit);
+        RefreshRecruitStatsWindowState();
+    }
+
+    private void ShowRecruitInfo(RecruitData recruit)
+    {
+        if (recruitNameText != null)
+            recruitNameText.text = recruit.recruitName;
+
+        if (recruitCostText != null)
+            recruitCostText.text = recruit.IsFreeRecruit
+                ? "Cost: Free/Night"
+                : $"Cost: {recruit.hireCost}/Night";
+
+        if (recruitMotivationText != null)
+            recruitMotivationText.text = recruit.motivationText;
+
+        if (recruitClassText != null)
+            recruitClassText.text = recruit.recruitClass.ToString();
+
+        if (recruitLevelText != null)
+            recruitLevelText.text = $"Level: {recruit.level}";
+
+        if (recruitHealthText != null)
+            recruitHealthText.text = $"Health: {recruit.stats.health}";
+
+        if (recruitStrengthText != null)
+            recruitStrengthText.text = $"Strength: {recruit.stats.strength}";
+
+        if (recruitEnduranceText != null)
+            recruitEnduranceText.text = $"Endurance: {recruit.stats.endurance}";
+
+        if (recruitSenseText != null)
+            recruitSenseText.text = $"Sense: {recruit.stats.sense}";
+
+        if (recruitStealthText != null)
+            recruitStealthText.text = $"Stealth: {recruit.stats.stealth}";
+
+        SetRecruitButtonState(
+            canViewStats: true,
+            canAccept: true,
+            canDecline: serviceDeskManager.CanDeclinePendingRecruit());
+    }
+
+    private void ShowEmptyRecruitState()
+    {
+        if (recruitNameText != null)
+            recruitNameText.text = "No recruit waiting";
+
+        if (recruitCostText != null)
+            recruitCostText.text = "Cost: -";
+
+        if (recruitMotivationText != null)
+            recruitMotivationText.text = "No recruit is currently waiting at the desk.";
+
+        if (recruitClassText != null)
+            recruitClassText.text = "-";
+
+        if (recruitLevelText != null)
+            recruitLevelText.text = "Level: -";
+
+        if (recruitHealthText != null)
+            recruitHealthText.text = "Health: -";
+
+        if (recruitStrengthText != null)
+            recruitStrengthText.text = "Strength: -";
+
+        if (recruitEnduranceText != null)
+            recruitEnduranceText.text = "Endurance: -";
+
+        if (recruitSenseText != null)
+            recruitSenseText.text = "Sense: -";
+
+        if (recruitStealthText != null)
+            recruitStealthText.text = "Stealth: -";
+
+        SetRecruitButtonState(false, false, false);
+    }
+
+    private void SetRecruitButtonState(bool canViewStats, bool canAccept, bool canDecline)
+    {
+        if (recruitViewStatsButton != null)
+            recruitViewStatsButton.interactable = canViewStats;
+
+        if (recruitAcceptButton != null)
+            recruitAcceptButton.interactable = canAccept;
+
+        if (recruitDeclineButton != null)
+            recruitDeclineButton.interactable = canDecline;
+    }
+
+    private void ToggleRecruitStatsWindow()
+    {
+        if (serviceDeskManager == null || !serviceDeskManager.HasPendingRecruit)
+            return;
+
+        isShowingRecruitStats = !isShowingRecruitStats;
+        RefreshRecruitStatsWindowState();
+    }
+
+    private void RefreshRecruitStatsWindowState()
+    {
+        bool canShowStats = serviceDeskManager != null && serviceDeskManager.HasPendingRecruit;
+        bool showStats = canShowStats && isShowingRecruitStats;
+
+        if (recruitStatsWindow != null)
+            recruitStatsWindow.SetActive(showStats);
+
+        if (recruitViewStatsButtonText != null)
+            recruitViewStatsButtonText.text = showStats ? "Close Stats" : "View Stats";
+    }
+
+    public void AcceptRecruit()
+    {
+        if (serviceDeskManager == null)
+            return;
+
+        bool accepted = serviceDeskManager.AcceptPendingRecruit();
+
+        if (accepted)
+        {
+            isShowingRecruitStats = false;
+            RefreshUI();
+        }
+    }
+
+    public void DeclineRecruit()
+    {
+        if (serviceDeskManager == null)
+            return;
+
+        bool declined = serviceDeskManager.DeclinePendingRecruit();
+
+        if (declined)
+        {
+            isShowingRecruitStats = false;
+            RefreshUI();
+        }
     }
 
     private void SelectMerchantUtility(GeneratedMerchantUtilityItem itemData)

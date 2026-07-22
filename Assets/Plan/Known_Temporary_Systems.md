@@ -34,7 +34,10 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **Why it's temporary:** exact value is explicitly TBD pending balancing (`Room_Workshop.md` Section 21, `Open_Architecture_Questions.md`).
 **Replaced by:** no stage owns this specifically — revisit during the Stage 12 polish/balancing pass, or earlier if a specific stage's testing makes the placeholder value obviously wrong.
 
-
+Where: RecruitGenerator.freeRecruitChance (60/40 default)
+What it fakes: a real design rule for how often a generated recruit visitor is Free vs Paid, now that capacity no longer splits by type.
+Why it's temporary: no such rule exists in the docs yet — this was an arbitrary stand-in to unblock the Desk Three merge.
+Replaced by: whenever a real Free/Paid generation rule gets designed.
 
 - RecruitQuartersDebugSeeder (Assets/Buildings/Recruit Quarters/Scripts) — debug-only recruit seeding via context menu, for testing capacity/levels before Dwarf (Stage 8) seeds real starting recruits. Safe to delete once Stage 8 lands.
 - ShopCoreManager.ModifyAppeal(int delta) — flat clamped-delta stub. Stage 5 needs to confirm this is sufficient or replace it with real Appeal rules (Room_Shop.md Section 18).
