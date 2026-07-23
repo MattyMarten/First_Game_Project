@@ -20,7 +20,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 3 | Workshop (Grinder/Goods/Gear Workbench) | DONE — CraftingRecipe confirmed clean of tier fields, Data Stick unlock-flag system added (RecipeUnlockManager, DataStickItem, DataStickConsumer) |
 | 3 | Gear Upgrade Station | DONE — GearUpgradeStationManager (LV1-3, mirrors Core's upgrade pattern), tier-chain fields added to UtilityCraftable, own UI/panel built |
 | 4 | Recruit Quarters | DONE — capacity 4/6/8 by level (RecruitQuartersManager), unified roster capacity (RecruitRosterManager), retire action with appeal stub, Locker/Actor split (RecruitLocker persistent per-bed fixture, decoupled from RecruitQuartersActor) |
-| 5 | Shop | REFACTOR — mid-refactor already (see `Assets/Plan/ShopRefactorPlan_Phase1_Version2.md`) |
+| 5 | Shop | DONE — Decor system built (DecorManager, spots, panel UI), Dirt system built (spawn-on-purchase, multi-press cleaning), Section 19 price pipeline wired (base→display→decor→dirt→appeal→negotiation, display step deferred), Desk Two/Three merged, Quest Board + Info Room extracted, Appeal + daily-report real |
 | 6 | Merchant | REFACTOR (logic exists inside Shop, needs its own room) |
 | 7 | Quest Board | REFACTOR (partial logic exists inside Shop as `RequestBoardManager`) |
 | 7 | Info Room | REFACTOR (partial logic exists inside Shop as `DialogueInfoManager`) |
@@ -33,7 +33,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 | 11 | Dispatch Board | MISSING entirely |
 | 12 | Save/load, full integration | not started |
 
-**Current stage: Stage 5, Shop — Desk Two/Three merged (one Service Desk handles talking/request/recruit), Quest Board + Info Room extracted, Appeal + daily-report real. Remaining: Decor system, Dirt system, full Section 19 price pipeline. Merchant still physically in Shop/DeskTwo, deferred to Stage 6.**     // [update this line each session — e.g. "Stage 6, Merchant, in progress"]
+**Current stage: Stage 5, Shop — DONE. All of Section 31's Done Condition lines are satisfied. Display Types and Effects (Section 15) and buyer-type personalities/Haggle-Generous-Non-buyer (Section 13) are intentionally deferred — both are pre-sanctioned as acceptable simplifications by Section 30, not oversights. Merchant still physically in Shop/DeskTwo, deferred to Stage 6 as planned. Next: Stage 6, Merchant.**     // [update this line each session]
 
 ## Design decisions locked in (do not re-litigate these without a real reason)
 - No fixed expedition time limit — Suit Battery is the only limit on expedition duration.
@@ -53,6 +53,7 @@ Room-by-room, in dependency order, against a set of design docs that are the sou
 - Gear Upgrade Station's own upgrade level (LV1-3) is a debug-button stand-in for the Dwarf's Upgrade Board (Stage 8), same pattern as Core Room's `TryUpgrade()` — not the same thing as an individual item's tier.
 - Recruit capacity is a single total (4/6/8 by Recruit Quarters level), not split into Free/Paid pools. RecruitType (Free/Paid) still exists but now only affects hire cost/generation flavor in the Shop's hire desk, not capacity. HireDeskManager's capacity check was patched to match as a Stage 5 stopgap — Stage 5 should replace it properly with the free-slot-ratio recruit-visitor spawn formula (25% floor) from Room_Shop.md, not just leave the patch in place.
 - Recruit Quarters' locker is a persistent per-bed fixture (RecruitLocker), separate from the transient RecruitQuartersActor. RecruitQuartersInteractable lives on the locker and looks up its current occupant live (RecruitQuartersManager.GetRecruitAtBedIndex) — never cache a direct reference to the actor across an interaction, since retiring/reassigning destroys it.
+- Shop Stage 5 was closed out without Display Types/Effects (Section 15) or buyer-type personalities (Section 13, Haggle/Generous/Non-buyer) — both explicitly allowed to be simplified for now per Section 30 ("simple display grid before advanced shapes", "simplified buyer logic before full personality behavior"). Revisit either only if a later stage's work specifically needs them, or during Stage 12 polish.
 
 Full detail and reasoning for all of the above: `Session_Changelog_2026-07-19.md` and `Open_Architecture_Questions.md`.
 

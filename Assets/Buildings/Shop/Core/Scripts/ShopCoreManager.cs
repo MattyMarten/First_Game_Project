@@ -59,6 +59,9 @@ public class ShopCoreManager : MonoBehaviour
     [SerializeField] private int visitorsSeenToday;
     [SerializeField] private int coinsEarnedToday;
 
+    [Header("Decor")]
+    [SerializeField] private DecorManager decorManager;
+
 
     public bool IsShopOpen => shopOpen;
 
@@ -163,6 +166,9 @@ public class ShopCoreManager : MonoBehaviour
 
         if (cobaltCoinStorage == null)
             cobaltCoinStorage = FindAnyObjectByType<CobaltCoinStorage>();
+
+        if (decorManager == null)
+            decorManager = FindAnyObjectByType<DecorManager>();
     }
 
     private void Update()
@@ -302,7 +308,17 @@ public class ShopCoreManager : MonoBehaviour
     {
         int baseCount = GetBaseBuyerCountForShopLevel();
         int appealModifier = GetBuyerCountAppealModifier();
-        return Mathf.Max(3, baseCount + appealModifier);
+        int decorBonus = decorManager != null ? decorManager.GetBuyerCountBonus() : 0;
+        return Mathf.Max(3, baseCount + appealModifier + decorBonus);
+    }
+
+    // Appeal used for buyer-count/sale tables now includes decor's conditional bonus —
+    // stored shopAppeal itself stays untouched by decor, since decor's contribution
+    // should vanish the moment the piece is removed (see DecorManager.GetAppealBonus()).
+    private int GetEffectiveAppeal()
+    {
+        int decorBonus = decorManager != null ? decorManager.GetAppealBonus() : 0;
+        return Mathf.Clamp(shopAppeal + decorBonus, 0, 100);
     }
 
     private int GetPlannedDesk2TalkingVisitorCount()
@@ -339,7 +355,8 @@ public class ShopCoreManager : MonoBehaviour
         if (freeSlots <= 0)
             return 0;
 
-        float spawnChance = Mathf.Max((float)freeSlots / totalSlots, recruitSpawnChanceFloor);
+        float decorRecruitBonus = decorManager != null ? decorManager.GetRecruitChanceBonus() : 0f;
+        float spawnChance = Mathf.Clamp01(Mathf.Max((float)freeSlots / totalSlots, recruitSpawnChanceFloor) + decorRecruitBonus);
 
         return Random.value < spawnChance ? 1 : 0;
     }
@@ -360,23 +377,25 @@ public class ShopCoreManager : MonoBehaviour
     // price multiplier from here instead of keeping its own copy of the table.
     private int GetBuyerCountAppealModifier()
     {
-        if (shopAppeal <= 10) return -3;
-        if (shopAppeal <= 20) return -2;
-        if (shopAppeal <= 40) return -1;
-        if (shopAppeal <= 60) return 0;
-        if (shopAppeal <= 80) return 1;
-        if (shopAppeal <= 90) return 2;
+        int appeal = GetEffectiveAppeal();
+        if (appeal <= 10) return -3;
+        if (appeal <= 20) return -2;
+        if (appeal <= 40) return -1;
+        if (appeal <= 60) return 0;
+        if (appeal <= 80) return 1;
+        if (appeal <= 90) return 2;
         return 3;
     }
 
     public float GetAppealSaleMultiplier()
     {
-        if (shopAppeal <= 10) return 0.80f;
-        if (shopAppeal <= 20) return 0.85f;
-        if (shopAppeal <= 40) return 0.90f;
-        if (shopAppeal <= 60) return 1.00f;
-        if (shopAppeal <= 80) return 1.10f;
-        if (shopAppeal <= 90) return 1.15f;
+        int appeal = GetEffectiveAppeal();
+        if (appeal <= 10) return 0.80f;
+        if (appeal <= 20) return 0.85f;
+        if (appeal <= 40) return 0.90f;
+        if (appeal <= 60) return 1.00f;
+        if (appeal <= 80) return 1.10f;
+        if (appeal <= 90) return 1.15f;
         return 1.20f;
     }
 

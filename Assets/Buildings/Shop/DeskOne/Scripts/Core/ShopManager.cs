@@ -31,6 +31,12 @@ public class ShopManager : MonoBehaviour
 
     [Header("Queue Spots")]
     [SerializeField] private List<ShopQueueSpot> queueSpots = new();
+
+    [Header("Dirt")]
+    [SerializeField] private DirtManager dirtManager;
+
+    [Header("Decor")]
+    [SerializeField] private DecorManager decorManager;
     
     private readonly List<ShopBuyerNPC> activeBuyers = new();
 
@@ -220,6 +226,9 @@ public class ShopManager : MonoBehaviour
 
         if (shopCoreManager != null)
             shopCoreManager.RecordItemSold(pendingPrice);
+
+        if (dirtManager != null)
+            dirtManager.TryRollDirtSpawn();
 
         Debug.Log($"Sale accepted: {pendingGood.goodName} sold for {pendingPrice}.");
 
@@ -521,19 +530,25 @@ public class ShopManager : MonoBehaviour
         if (good == null)
             return 0;
 
-        int baseValue = Mathf.Max(0, good.valueGold);
-        float appealMultiplier = GetAppealPriceMultiplier();
-        float negotiationMultiplier = GetNegotiationPriceMultiplier(buyer);
+        // Room_Shop.md Section 19 — Final Sale Price Order:
+        // base -> display -> decor -> dirt -> appeal -> negotiation -> round.
+        float value = Mathf.Max(0, good.valueGold);
 
-        int priceAfterAppeal = Mathf.RoundToInt(baseValue * appealMultiplier);
-        int finalPrice = Mathf.RoundToInt(priceAfterAppeal * negotiationMultiplier);
+        value *= GetDisplayPriceMultiplier(); // Section 15 not built yet — see comment below.
+        value *= decorManager != null ? decorManager.GetSaleValueMultiplier() : 1.00f;
+        value *= dirtManager != null ? dirtManager.GetDirtPriceMultiplier() : 1.00f;
+        value *= GetAppealPriceMultiplier();
+        value *= GetNegotiationPriceMultiplier(buyer);
 
-        return Mathf.Max(0, finalPrice);
+        return Mathf.Max(0, Mathf.RoundToInt(value));
     }
 
-    // Delegates to ShopCoreManager.GetAppealSaleMultiplier() — the single source of
-    // truth for Appeal's price effect (Room_Shop.md Section 18), instead of keeping
-    // a second, separately-maintained copy of the same table here.
+    // Room_Shop.md Section 15 — Display Types and Effects (gem/wood/metal/1-slot/4-slot
+    // bonuses) is entirely unbuilt: no display-type field exists on DisplayStand yet.
+    // Flagged rather than silently skipped — log as an open item in
+    // Known_Temporary_Systems.md. Returns 1.00 (no effect) until that system exists.
+    private float GetDisplayPriceMultiplier() => 1.00f;
+
     private float GetAppealPriceMultiplier()
     {
         return shopCoreManager != null ? shopCoreManager.GetAppealSaleMultiplier() : 1.00f;
@@ -541,10 +556,6 @@ public class ShopManager : MonoBehaviour
 
     private float GetNegotiationPriceMultiplier(ShopBuyerNPC buyer)
     {
-        if (buyer == null)
-            return 1.00f;
-
-        return buyer.GetNegotiationPriceMultiplier();
+        return buyer != null ? buyer.GetNegotiationPriceMultiplier() : 1.00f;
     }
-
 }

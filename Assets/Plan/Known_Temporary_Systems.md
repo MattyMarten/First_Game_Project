@@ -34,6 +34,30 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **Why it's temporary:** exact value is explicitly TBD pending balancing (`Room_Workshop.md` Section 21, `Open_Architecture_Questions.md`).
 **Replaced by:** no stage owns this specifically — revisit during the Stage 12 polish/balancing pass, or earlier if a specific stage's testing makes the placeholder value obviously wrong.
 
+---
+
+## Decor spot options — hand-assigned list, no ownership pool
+**Where:** `DecorSpot.availableOptions`
+**What it fakes:** a real "owned decor" inventory that a spot's options should draw from.
+**Why it's temporary:** there's no way to acquire decor yet — that needs the Merchant (Stage 6) to sell it.
+**Replaced by:** Stage 6 — once the Merchant can sell decor, DecorSpot should filter the player's owned decor by `slotType` instead of using a fixed Inspector list.
+
+---
+
+## Display Types and Effects — entirely unbuilt
+**Where:** `ShopManager.GetDisplayPriceMultiplier()` (hardcoded to return `1.00f`)
+**What it fakes:** Room_Shop.md Section 15's gem/wood/metal display bonuses and 1-slot/4-slot modifiers.
+**Why it's temporary:** never built — no display-type field exists anywhere on `DisplayStand`. Deferred deliberately (see Project_Status.md decision log), not an oversight.
+**Replaced by:** whichever future stage actually needs display bonuses to matter — no stage currently owns this.
+
+---
+
+## Buyer-type personalities — entirely unbuilt
+**Where:** `ShopBuyerNPC` (only has a continuous random negotiation multiplier, no discrete buyer types)
+**What it fakes:** Room_Shop.md Section 13's Normal/Haggle/Generous/Non-buyer categories, and by extension Decor's `GenerousBuyer`/`HaggleReduction`/`NonBuyerReduction` effect categories (`DecorManager` has the getters, nothing calls them).
+**Why it's temporary:** deliberately deferred, pre-sanctioned by Section 30 ("simplified buyer logic before full personality behavior").
+**Replaced by:** no stage currently owns this — build it whenever buyer personality variety actually gets prioritized, then wire the three existing `DecorManager` getters into the new roll.
+
 Where: RecruitGenerator.freeRecruitChance (60/40 default)
 What it fakes: a real design rule for how often a generated recruit visitor is Free vs Paid, now that capacity no longer splits by type.
 Why it's temporary: no such rule exists in the docs yet — this was an arbitrary stand-in to unblock the Desk Three merge.
