@@ -127,6 +127,48 @@
 
 ---
 
+### Question (new this session)
+- Merchant's price variance: should it be ±10% (as Room_Merchant.md Section 10 states for the Data Stick pedestal, presumably meaning it's the project-wide standard) or ±20% (what the old MerchantDayManager.GeneratePrice code actually implemented)?
+
+### Why it matters
+- The two disagree, and MerchantRoomManager (Stage 6) needed to pick one to ship with. Affects how much daily price fluctuation the player sees on every pedestal, not just Merchant's — if ±10% really is meant to be project-wide, ShopManager's own sale-price variance (if any) should probably match it too.
+
+### Affects
+- Merchant Room, potentially Shop's sale-price variance if the two are meant to be consistent
+
+### Current assumption
+- MerchantRoomManager.priceVariance defaults to ±10% (matches the doc's literal words), serialized and easy to flip to ±20% in the Inspector once this is confirmed
+
+### Blocks work?
+- [ ] Yes
+- [x] No — either value works mechanically, this is pure balancing
+
+### Must be decided by
+- whenever Merchant pricing gets a real balancing pass, or Stage 12 polish at the latest
+
+---
+
+### Question (new this session)
+- What's the full intended contents of the Merchant's curated Data Stick pool, beyond the one recipe that currently exists?
+
+### Why it matters
+- Room_Merchant.md Section 23 already flagged this as open. A full audit this session found only ONE recipe in the entire project is actually locked-by-default (Basic Shovel T1 — Basic Shovel T2 was also locked but that was a mistake, now fixed to unlocked-by-default). The curated pool is seeded with just that one Data Stick for now.
+
+### Affects
+- Merchant Room, Workshop (any future recipe that gets locked behind a Data Stick needs a corresponding DataStickItem asset made and added to this pool)
+
+### Current assumption
+- Pool grows organically as more recipes get locked; no rush to pad it out artificially
+
+### Blocks work?
+- [ ] Yes
+- [x] No — an effectively-empty/single-entry pool is a valid state, the pedestal just stays empty most days it would've rolled a stick
+
+### Must be decided by
+- whenever more recipes get locked behind Data Sticks, or Stage 12 polish
+
+---
+
 ## 6. Recently Resolved Questions (additions this session)
 
 ### Question

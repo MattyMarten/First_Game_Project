@@ -80,7 +80,6 @@ public class ShopSpawnPlanDebugUI : MonoBehaviour
             ShopCoreManager.ShopSpawnType.Desk1Buyer => "Desk 1 Buyer",
             ShopCoreManager.ShopSpawnType.Desk2TalkingVisitor => "Desk 2 Talking Visitor",
             ShopCoreManager.ShopSpawnType.Desk2RequestVisitor => "Desk 2 Request Visitor",
-            ShopCoreManager.ShopSpawnType.Desk2MerchantVisitor => "Desk 2 Merchant Visitor",
             ShopCoreManager.ShopSpawnType.Desk3HireVisitor => "Desk 3 Hire Visitor",
             _ => spawnType.ToString()
         };

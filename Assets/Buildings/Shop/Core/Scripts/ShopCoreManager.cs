@@ -13,7 +13,6 @@ public class ShopCoreManager : MonoBehaviour
         Desk1Buyer,
         Desk2TalkingVisitor,
         Desk2RequestVisitor,
-        Desk2MerchantVisitor,
         Desk3HireVisitor
     }
 
@@ -279,7 +278,6 @@ public class ShopCoreManager : MonoBehaviour
 
             case ShopSpawnType.Desk2TalkingVisitor:
             case ShopSpawnType.Desk2RequestVisitor:
-            case ShopSpawnType.Desk2MerchantVisitor:
             case ShopSpawnType.Desk3HireVisitor:
                 return serviceVisitorSpawner != null &&
                        serviceVisitorSpawner.TrySpawnSpecificVisitor(spawnType, sharedSpawnPoint, sharedExitPoint);
@@ -295,7 +293,6 @@ public class ShopCoreManager : MonoBehaviour
         AddDailyVisitors(ShopSpawnType.Desk1Buyer, GetPlannedDesk1BuyerCount());
         AddDailyVisitors(ShopSpawnType.Desk2TalkingVisitor, GetPlannedDesk2TalkingVisitorCount());
         AddDailyVisitors(ShopSpawnType.Desk2RequestVisitor, GetPlannedDesk2RequestVisitorCount());
-        AddDailyVisitors(ShopSpawnType.Desk2MerchantVisitor, GetPlannedDesk2MerchantVisitorCount());
         AddDailyVisitors(ShopSpawnType.Desk3HireVisitor, GetPlannedDesk3HireVisitorCount());
 
         ShuffleDailyVisitorSpawnList();
@@ -331,11 +328,6 @@ public class ShopCoreManager : MonoBehaviour
         return Random.Range(0, 3); // 0-2
     }
 
-    private int GetPlannedDesk2MerchantVisitorCount()
-    {
-        return IsMerchantVisitDay() ? 1 : 0;
-    }
-
     // Recruit visitor generation rule (Room_Shop.md Section 13): not a flat level-based
     // range anymore. Chance = free recruit slots / total recruit slots, floored at 25%.
     // 0 free slots -> 0% chance, no recruit visitor at all that day. Rolled once here,
@@ -359,17 +351,6 @@ public class ShopCoreManager : MonoBehaviour
         float spawnChance = Mathf.Clamp01(Mathf.Max((float)freeSlots / totalSlots, recruitSpawnChanceFloor) + decorRecruitBonus);
 
         return Random.value < spawnChance ? 1 : 0;
-    }
-
-    private bool IsMerchantVisitDay()
-    {
-        int currentDay = GetCurrentDay();
-        int level = GetEffectiveShopLevel();
-
-        if (level >= 3)
-            return currentDay % 2 == 0;
-
-        return currentDay % 3 == 0;
     }
 
     // Appeal Rules (Room_Shop.md Section 18). Single source of truth for both the
@@ -506,7 +487,6 @@ public class ShopCoreManager : MonoBehaviour
 
             case ShopSpawnType.Desk2TalkingVisitor:
             case ShopSpawnType.Desk2RequestVisitor:
-            case ShopSpawnType.Desk2MerchantVisitor:
             case ShopSpawnType.Desk3HireVisitor:
                 return serviceVisitorSpawner != null && serviceVisitorSpawner.CanSpawnServiceVisitor(spawnType);
 

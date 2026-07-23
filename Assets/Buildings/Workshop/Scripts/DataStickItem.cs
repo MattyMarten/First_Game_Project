@@ -1,4 +1,7 @@
 // Target path in your project: Assets/Buildings/Workshop/Scripts/DataStickItem.cs
+// (this REPLACES your existing file — only change is the new baseMerchantPrice field
+// under a new "Merchant" header, needed so Merchant's Data Stick pedestal has a price
+// to roll variance against, same as UtilityCraftable.baseMerchantPrice / RawMaterial's.)
 
 using UnityEngine;
 
@@ -23,6 +26,10 @@ public class DataStickItem : ScriptableObject
     [Header("Target Recipe — fill exactly one of these two")]
     public CraftingGood goodsRecipe;
     public UtilityCraftable gearRecipe;
+
+    [Header("Merchant (Room_Merchant.md Section 10 — Data Stick pedestal)")]
+    [Tooltip("Base price when sold from the Merchant's Data Stick pedestal, before the daily ± variance roll.")]
+    public int baseMerchantPrice = 50;
 
     [Header("Duplicate Conversion (placeholder value, TBD balancing — Room_Workshop.md Section 21)")]
     public int duplicateCoinValue = 10;

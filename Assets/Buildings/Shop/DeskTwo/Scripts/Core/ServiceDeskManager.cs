@@ -9,7 +9,6 @@ public class ServiceDeskManager : MonoBehaviour
         None,
         Request,
         Dialogue,
-        MerchantOffer,
         Recruit
     }
 
@@ -20,8 +19,6 @@ public class ServiceDeskManager : MonoBehaviour
     [SerializeField] private RequestBoardManager requestBoardManager;
     [SerializeField] private ShopManager shopManager;
     [SerializeField] private DialogueInfoManager dialogueInfoManager;
-    [SerializeField] private CraftedUtilityStorage craftedUtilityStorage;
-    [SerializeField] private RawMaterialStorage rawMaterialStorage;
 
     [Header("Recruit References (merged in from the old Desk Three)")]
     [SerializeField] private RecruitRosterManager recruitRosterManager;
@@ -38,21 +35,15 @@ public class ServiceDeskManager : MonoBehaviour
     private ServiceVisitorNPC pendingVisitor;
     private ShopRequestData pendingRequest;
     private DialogueEncounterData pendingDialogue;
-    private GeneratedMerchantVisit pendingMerchantVisit;
     private RecruitData pendingRecruit;
     private ServiceInteractionType currentInteractionType = ServiceInteractionType.None;
 
     private string currentDialogueResultText;
 
-    private bool isViewingMerchantWares;
-    private GeneratedMerchantUtilityItem selectedMerchantUtilityItem;
-    private GeneratedMerchantMaterialItem selectedMerchantMaterialItem;
-
     public event Action OnPendingInteractionChanged;
 
     public bool HasPendingRequest => currentInteractionType == ServiceInteractionType.Request && pendingVisitor != null && pendingRequest != null;
     public bool HasPendingDialogue => currentInteractionType == ServiceInteractionType.Dialogue && pendingVisitor != null && pendingDialogue != null;
-    public bool HasPendingMerchantVisit => currentInteractionType == ServiceInteractionType.MerchantOffer && pendingVisitor != null && pendingMerchantVisit != null;
     public bool HasPendingRecruit => currentInteractionType == ServiceInteractionType.Recruit && pendingVisitor != null && pendingRecruit != null;
 
     public bool HasPendingInteraction => currentInteractionType != ServiceInteractionType.None && pendingVisitor != null;
@@ -60,7 +51,6 @@ public class ServiceDeskManager : MonoBehaviour
 
     public ShopRequestData PendingRequest => pendingRequest;
     public DialogueEncounterData PendingDialogue => pendingDialogue;
-    public GeneratedMerchantVisit PendingMerchantVisit => pendingMerchantVisit;
     public RecruitData PendingRecruit => pendingRecruit;
 
     public ServiceInteractionType CurrentInteractionType => currentInteractionType;
@@ -72,11 +62,6 @@ public class ServiceDeskManager : MonoBehaviour
     public int MaxActiveVisitors => 1 + queueSpots.Count;
     public bool IsDeskOccupied => deskAssignedVisitor != null;
     public bool IsShopOpen => shopCoreManager != null ? shopCoreManager.IsShopOpen : false;
-
-    public bool IsViewingMerchantWares => isViewingMerchantWares;
-    public GeneratedMerchantUtilityItem SelectedMerchantUtilityItem => selectedMerchantUtilityItem;
-    public GeneratedMerchantMaterialItem SelectedMerchantMaterialItem => selectedMerchantMaterialItem;
-    public bool HasSelectedMerchantItem => selectedMerchantUtilityItem != null || selectedMerchantMaterialItem != null;
 
     private void Awake()
     {
@@ -91,12 +76,6 @@ public class ServiceDeskManager : MonoBehaviour
 
         if (dialogueInfoManager == null)
             dialogueInfoManager = FindAnyObjectByType<DialogueInfoManager>();
-
-        if (craftedUtilityStorage == null)
-            craftedUtilityStorage = FindAnyObjectByType<CraftedUtilityStorage>();
-
-        if (rawMaterialStorage == null)
-            rawMaterialStorage = FindAnyObjectByType<RawMaterialStorage>();
 
         if (recruitRosterManager == null)
             recruitRosterManager = FindAnyObjectByType<RecruitRosterManager>();
@@ -267,12 +246,9 @@ public class ServiceDeskManager : MonoBehaviour
         pendingVisitor = visitor;
         pendingRequest = request;
         pendingDialogue = null;
-        pendingMerchantVisit = null;
         pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.Request;
         currentDialogueResultText = null;
-
-        ResetMerchantState();
 
         OnPendingInteractionChanged?.Invoke();
         //Debug.Log($"Pending request created: {request.requestTitle}");
@@ -290,38 +266,12 @@ public class ServiceDeskManager : MonoBehaviour
         pendingVisitor = visitor;
         pendingRequest = null;
         pendingDialogue = dialogue;
-        pendingMerchantVisit = null;
         pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.Dialogue;
         currentDialogueResultText = null;
 
-        ResetMerchantState();
-
         OnPendingInteractionChanged?.Invoke();
         //Debug.Log($"Pending dialogue created: {dialogue.encounterTitle}");
-        return true;
-    }
-
-    public bool TryCreatePendingMerchantVisit(ServiceVisitorNPC visitor, GeneratedMerchantVisit merchantVisit)
-    {
-        if (visitor == null || merchantVisit == null)
-            return false;
-
-        if (currentInteractionType != ServiceInteractionType.None)
-            return false;
-
-        pendingVisitor = visitor;
-        pendingRequest = null;
-        pendingDialogue = null;
-        pendingMerchantVisit = merchantVisit;
-        pendingRecruit = null;
-        currentInteractionType = ServiceInteractionType.MerchantOffer;
-        currentDialogueResultText = null;
-
-        ResetMerchantState();
-
-        OnPendingInteractionChanged?.Invoke();
-        //Debug.Log($"Pending merchant visit created: {merchantVisit.merchantName}");
         return true;
     }
 
@@ -336,12 +286,9 @@ public class ServiceDeskManager : MonoBehaviour
         pendingVisitor = visitor;
         pendingRequest = null;
         pendingDialogue = null;
-        pendingMerchantVisit = null;
         pendingRecruit = recruit;
         currentInteractionType = ServiceInteractionType.Recruit;
         currentDialogueResultText = null;
-
-        ResetMerchantState();
 
         OnPendingInteractionChanged?.Invoke();
         return true;
@@ -536,192 +483,6 @@ public class ServiceDeskManager : MonoBehaviour
             visitor.OnInteractionAccepted();
     }
 
-    public void AcceptPendingMerchantVisit()
-    {
-        if (!HasPendingMerchantVisit)
-            return;
-
-        isViewingMerchantWares = true;
-        AutoSelectFirstMerchantItem();
-
-        OnPendingInteractionChanged?.Invoke();
-    }
-
-    public void DeclinePendingMerchantVisit()
-    {
-        if (!HasPendingMerchantVisit)
-            return;
-
-        ServiceVisitorNPC visitor = pendingVisitor;
-
-        ClearPendingInteraction();
-
-        if (visitor != null)
-            visitor.OnInteractionDeclined();
-    }
-
-    public void FinishMerchantVisit()
-    {
-        if (!HasPendingMerchantVisit)
-            return;
-
-        ServiceVisitorNPC visitor = pendingVisitor;
-
-        ClearPendingInteraction();
-
-        if (visitor != null)
-            visitor.OnInteractionAccepted();
-    }
-
-    public void SelectMerchantUtilityItem(GeneratedMerchantUtilityItem item)
-    {
-        if (!HasPendingMerchantVisit || item == null)
-            return;
-
-        selectedMerchantUtilityItem = item;
-        selectedMerchantMaterialItem = null;
-
-        OnPendingInteractionChanged?.Invoke();
-    }
-
-    public void SelectMerchantMaterialItem(GeneratedMerchantMaterialItem item)
-    {
-        if (!HasPendingMerchantVisit || item == null)
-            return;
-
-        selectedMerchantUtilityItem = null;
-        selectedMerchantMaterialItem = item;
-
-        OnPendingInteractionChanged?.Invoke();
-    }
-
-    public void BuySelectedMerchantItem()
-    {
-        if (!HasPendingMerchantVisit || !HasSelectedMerchantItem || shopManager == null)
-            return;
-
-        if (selectedMerchantUtilityItem != null)
-        {
-            UtilityCraftable utilityItem = selectedMerchantUtilityItem.item;
-            int price = selectedMerchantUtilityItem.finalPrice;
-
-            if (utilityItem == null || craftedUtilityStorage == null || selectedMerchantUtilityItem.quantity <= 0)
-                return;
-
-            if (!shopManager.SpendMoney(price))
-            {
-                //Debug.Log("Not enough money to buy this item.");
-                return;
-            }
-
-            craftedUtilityStorage.Add(utilityItem, 1);
-            selectedMerchantUtilityItem.quantity--;
-
-            if (selectedMerchantUtilityItem.quantity <= 0)
-            {
-                RemoveUtilityItemFromMerchantStock(selectedMerchantUtilityItem);
-                selectedMerchantUtilityItem = null;
-            }
-        }
-        else if (selectedMerchantMaterialItem != null)
-        {
-            RawMaterial materialItem = selectedMerchantMaterialItem.item;
-            int price = selectedMerchantMaterialItem.finalPrice;
-
-            if (materialItem == null || rawMaterialStorage == null || selectedMerchantMaterialItem.quantity <= 0)
-                return;
-
-            if (!shopManager.SpendMoney(price))
-            {
-                //Debug.Log("Not enough money to buy this item.");
-                return;
-            }
-
-            rawMaterialStorage.Add(materialItem, 1);
-            selectedMerchantMaterialItem.quantity--;
-
-            if (selectedMerchantMaterialItem.quantity <= 0)
-            {
-                RemoveMaterialItemFromMerchantStock(selectedMerchantMaterialItem);
-                selectedMerchantMaterialItem = null;
-            }
-        }
-
-        if (GetRemainingMerchantItemCount() <= 0)
-        {
-            //Debug.Log("Merchant is sold out and leaves.");
-            FinishMerchantVisit();
-            return;
-        }
-
-        if (!HasSelectedMerchantItem)
-        AutoSelectFirstMerchantItem();
-        
-        OnPendingInteractionChanged?.Invoke();
-    }
-
-    private void AutoSelectFirstMerchantItem()
-    {
-        if (pendingMerchantVisit == null)
-            return;
-
-        selectedMerchantUtilityItem = null;
-        selectedMerchantMaterialItem = null;
-
-        if (pendingMerchantVisit.utilityItems != null && pendingMerchantVisit.utilityItems.Count > 0)
-        {
-            selectedMerchantUtilityItem = pendingMerchantVisit.utilityItems[0];
-            return;
-        }
-
-        if (pendingMerchantVisit.miscItems != null && pendingMerchantVisit.miscItems.Count > 0)
-        {
-            selectedMerchantUtilityItem = pendingMerchantVisit.miscItems[0];
-            return;
-        }
-
-        if (pendingMerchantVisit.materialItems != null && pendingMerchantVisit.materialItems.Count > 0)
-        {
-            selectedMerchantMaterialItem = pendingMerchantVisit.materialItems[0];
-        }
-    }
-
-    public int GetRemainingMerchantItemCount()
-    {
-        if (pendingMerchantVisit == null)
-            return 0;
-
-        int total = 0;
-
-        if (pendingMerchantVisit.utilityItems != null)
-            total += pendingMerchantVisit.utilityItems.Count;
-
-        if (pendingMerchantVisit.miscItems != null)
-            total += pendingMerchantVisit.miscItems.Count;
-
-        if (pendingMerchantVisit.materialItems != null)
-            total += pendingMerchantVisit.materialItems.Count;
-
-        return total;
-    }
-
-    private void RemoveUtilityItemFromMerchantStock(GeneratedMerchantUtilityItem item)
-    {
-        if (pendingMerchantVisit == null || item == null)
-            return;
-
-        pendingMerchantVisit.utilityItems.Remove(item);
-        pendingMerchantVisit.miscItems.Remove(item);
-    }
-
-    private void RemoveMaterialItemFromMerchantStock(GeneratedMerchantMaterialItem item)
-    {
-        if (pendingMerchantVisit == null || item == null)
-            return;
-
-        pendingMerchantVisit.materialItems.Remove(item);
-    }
-
     private string BuildDialogueResultText(DialogueChoiceData chosenChoice)
     {
         if (chosenChoice == null)
@@ -739,24 +500,14 @@ public class ServiceDeskManager : MonoBehaviour
         return "UHHH.";
     }
 
-    private void ResetMerchantState()
-    {
-        isViewingMerchantWares = false;
-        selectedMerchantUtilityItem = null;
-        selectedMerchantMaterialItem = null;
-    }
-
     private void ClearPendingInteraction()
     {
         pendingVisitor = null;
         pendingRequest = null;
         pendingDialogue = null;
-        pendingMerchantVisit = null;
         pendingRecruit = null;
         currentInteractionType = ServiceInteractionType.None;
         currentDialogueResultText = null;
-
-        ResetMerchantState();
 
         OnPendingInteractionChanged?.Invoke();
     }

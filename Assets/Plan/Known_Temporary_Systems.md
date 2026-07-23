@@ -16,7 +16,7 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **Where:** `DataStickConsumer.debugStickToAcquire` + the `Debug: Acquire Assigned Stick` context-menu action.
 **What it fakes:** a Data Stick actually reaching the base through one of its real sources.
 **Why it's temporary:** none of the real acquisition sources exist yet — sector loot (Stage 11), the Merchant's Data Stick pedestal (Stage 6), or request/talking visitors (Stage 7 / Stage 5).
-**Replaced by:** whichever of those stages ships first should call `DataStickConsumer.Acquire()` directly instead of the debug button. The debug action can stay in the code afterward as a manual test tool — it's harmless — but it should no longer be the only way to unlock a recipe.
+**Replaced by:** Stage 6 (Merchant) now calls `DataStickConsumer.Acquire()` for real via its Data Stick pedestal — this shortcut is resolved for that source. Sector loot (Stage 11) and request/talking visitors (Stage 7/5) still don't exist, so the debug button remains useful for testing those paths until then. Safe to leave in the code as a manual test tool either way.
 
 ---
 
@@ -40,7 +40,7 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **Where:** `DecorSpot.availableOptions`
 **What it fakes:** a real "owned decor" inventory that a spot's options should draw from.
 **Why it's temporary:** there's no way to acquire decor yet — that needs the Merchant (Stage 6) to sell it.
-**Replaced by:** Stage 6 — once the Merchant can sell decor, DecorSpot should filter the player's owned decor by `slotType` instead of using a fixed Inspector list.
+**Replaced by:** Half-resolved by Stage 6 — the Merchant can now sell decor (routes into the new `DecorStorage`), so a real ownership pool exists. `DecorSpot.availableOptions` itself hasn't been updated yet to actually read from `DecorStorage` filtered by `slotType` — that's the remaining piece, not blocked on anything now.
 
 ---
 
@@ -57,6 +57,8 @@ Referenced from `Project_Status.md`. This is a running log of every debug/placeh
 **What it fakes:** Room_Shop.md Section 13's Normal/Haggle/Generous/Non-buyer categories, and by extension Decor's `GenerousBuyer`/`HaggleReduction`/`NonBuyerReduction` effect categories (`DecorManager` has the getters, nothing calls them).
 **Why it's temporary:** deliberately deferred, pre-sanctioned by Section 30 ("simplified buyer logic before full personality behavior").
 **Replaced by:** no stage currently owns this — build it whenever buyer personality variety actually gets prioritized, then wire the three existing `DecorManager` getters into the new roll.
+
+
 
 Where: RecruitGenerator.freeRecruitChance (60/40 default)
 What it fakes: a real design rule for how often a generated recruit visitor is Free vs Paid, now that capacity no longer splits by type.

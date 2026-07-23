@@ -20,7 +20,7 @@ MonoBehaviour:
   requiredMaterials:
   - material: {fileID: 11400000, guid: 04a43df292981524ebf973d114bf23fb, type: 2}
     amount: 1
-  isUnlockedByDefault: 0
+  isUnlockedByDefault: 1
   tier: 1
   nextTierItem: {fileID: 0}
   upgradeMaterials: []

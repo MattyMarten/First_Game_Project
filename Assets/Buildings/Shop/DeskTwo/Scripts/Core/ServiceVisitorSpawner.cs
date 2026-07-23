@@ -15,7 +15,6 @@ public class ServiceVisitorSpawner : MonoBehaviour
     [Header("Visitor Prefabs")]
     [SerializeField] private RequestVisitorNPC requestVisitorPrefab;
     [SerializeField] private TalkingVisitorNPC talkingVisitorPrefab;
-    [SerializeField] private MerchantVisitorNPC merchantVisitorPrefab;
     [SerializeField] private HireVisitorNPC hireVisitorPrefab;
 
     [Header("Recruit Generation (merged in from the old Desk Three)")]
@@ -133,7 +132,11 @@ public class ServiceVisitorSpawner : MonoBehaviour
         {
             ShopCoreManager.ShopSpawnType.Desk2TalkingVisitor => talkingVisitorPrefab,
             ShopCoreManager.ShopSpawnType.Desk2RequestVisitor => requestVisitorPrefab,
-            ShopCoreManager.ShopSpawnType.Desk2MerchantVisitor => merchantVisitorPrefab,
+            // Desk2MerchantVisitor intentionally has no case here anymore —
+            // the Merchant now lives in its own room (Stage 6), not as a
+            // Desk Two NPC visitor type. If ShopCoreManager.ShopSpawnType
+            // still has a Desk2MerchantVisitor enum entry, it's now unused
+            // dead weight — worth removing there too when convenient.
             _ => null
         };
     }

@@ -14,7 +14,6 @@ public class ServiceDeskUI : MonoBehaviour
     [Header("Sections")]
     [SerializeField] private GameObject requestSection;
     [SerializeField] private GameObject dialogueSection;
-    [SerializeField] private GameObject merchantSection;
 
     [Header("Request UI")]
     [SerializeField] private TMP_Text requestNpcNameText;
@@ -33,25 +32,6 @@ public class ServiceDeskUI : MonoBehaviour
     [SerializeField] private Button[] dialogueChoiceButtons;
     [SerializeField] private TMP_Text[] dialogueChoiceButtonTexts;
     [SerializeField] private Button dialogueContinueButton;
-
-    [Header("Merchant UI - Intro")]
-    [SerializeField] private GameObject merchantIntroGroup;
-    [SerializeField] private TMP_Text merchantNameText;
-    [SerializeField] private TMP_Text merchantDialogueText;
-    [SerializeField] private Button merchantViewWaresButton;
-    [SerializeField] private Button merchantIgnoreButton;
-
-    [Header("Merchant UI - Browsing")]
-    [SerializeField] private GameObject merchantBrowseGroup;
-    [SerializeField] private Transform merchantContentRoot;
-    [SerializeField] private MerchantItemRowUI merchantRowPrefab;
-
-    [SerializeField] private Image merchantSelectedItemIcon;
-    [SerializeField] private TMP_Text merchantSelectedItemNameText;
-    [SerializeField] private TMP_Text merchantSelectedItemPriceText;
-    [SerializeField] private TMP_Text merchantSelectedItemTypeText;
-    [SerializeField] private Button merchantBuyButton;
-    [SerializeField] private Button merchantGoodbyeButton;
 
     [Header("Recruit UI (merged in from the old Desk Three)")]
     [SerializeField] private GameObject recruitSection;
@@ -73,8 +53,6 @@ public class ServiceDeskUI : MonoBehaviour
 
     private bool isShowingRecruitStats;
 
-    private readonly List<GameObject> spawnedMerchantRows = new();
-
     private void Awake()
     {
         if (serviceDeskManager == null)
@@ -91,18 +69,6 @@ public class ServiceDeskUI : MonoBehaviour
 
         if (dialogueContinueButton != null)
             dialogueContinueButton.onClick.AddListener(FinishDialogue);
-
-        if (merchantViewWaresButton != null)
-            merchantViewWaresButton.onClick.AddListener(OpenMerchantWares);
-
-        if (merchantIgnoreButton != null)
-            merchantIgnoreButton.onClick.AddListener(IgnoreMerchant);
-
-        if (merchantBuyButton != null)
-            merchantBuyButton.onClick.AddListener(BuyMerchantItem);
-
-        if (merchantGoodbyeButton != null)
-            merchantGoodbyeButton.onClick.AddListener(GoodbyeMerchant);
 
         if (recruitViewStatsButton != null)
             recruitViewStatsButton.onClick.AddListener(ToggleRecruitStatsWindow);
@@ -165,10 +131,6 @@ public class ServiceDeskUI : MonoBehaviour
 
             case ServiceDeskManager.ServiceInteractionType.Dialogue:
                 RefreshDialogueUI();
-                break;
-
-            case ServiceDeskManager.ServiceInteractionType.MerchantOffer:
-                RefreshMerchantUI();
                 break;
 
             case ServiceDeskManager.ServiceInteractionType.Recruit:
@@ -258,177 +220,6 @@ public class ServiceDeskUI : MonoBehaviour
             dialogueContinueButton.gameObject.SetActive(hasResult);
     }
 
-    private void RefreshMerchantUI()
-    {
-        if (merchantSection != null)
-            merchantSection.SetActive(true);
-
-        GeneratedMerchantVisit visit = serviceDeskManager.PendingMerchantVisit;
-        bool hasVisit = serviceDeskManager.HasPendingMerchantVisit && visit != null;
-        bool isBrowsing = serviceDeskManager.IsViewingMerchantWares;
-
-        if (merchantNameText != null)
-            merchantNameText.text = hasVisit ? visit.merchantName : "Merchant";
-
-        if (merchantDialogueText != null)
-            merchantDialogueText.text = hasVisit ? visit.openingLine : "Take a look at my wares.";
-
-        if (merchantIntroGroup != null)
-            merchantIntroGroup.SetActive(hasVisit && !isBrowsing);
-
-        if (merchantBrowseGroup != null)
-            merchantBrowseGroup.SetActive(hasVisit && isBrowsing);
-
-        ClearMerchantRows();
-
-        if (!hasVisit || !isBrowsing)
-        {
-            RefreshMerchantSelectedItem();
-            return;
-        }
-
-        BuildMerchantRows(visit);
-        RefreshMerchantSelectedItem();
-    }
-
-    private void BuildMerchantRows(GeneratedMerchantVisit visit)
-    {
-        if (visit == null || merchantContentRoot == null || merchantRowPrefab == null)
-            return;
-
-        BuildUtilityRows(visit.utilityItems, "Utility");
-        BuildUtilityRows(visit.miscItems, "Misc");
-        BuildMaterialRows(visit.materialItems, "Material");
-    }
-
-    private void BuildUtilityRows(List<GeneratedMerchantUtilityItem> items, string typeLabel)
-    {
-        if (items == null)
-            return;
-
-        for (int i = 0; i < items.Count; i++)
-        {
-            GeneratedMerchantUtilityItem itemData = items[i];
-
-            if (itemData == null || itemData.item == null)
-                continue;
-
-            MerchantItemRowUI row = Instantiate(merchantRowPrefab, merchantContentRoot);
-            bool isSelected = serviceDeskManager.SelectedMerchantUtilityItem == itemData;
-
-            row.Setup(
-            itemData.item.icon,
-            itemData.item.itemName,
-            itemData.finalPrice,
-            typeLabel,
-            itemData.quantity,
-            () => SelectMerchantUtility(itemData),
-            isSelected);
-
-            spawnedMerchantRows.Add(row.gameObject);
-        }
-    }
-
-    private void BuildMaterialRows(List<GeneratedMerchantMaterialItem> items, string typeLabel)
-    {
-        if (items == null)
-            return;
-
-        for (int i = 0; i < items.Count; i++)
-        {
-            GeneratedMerchantMaterialItem itemData = items[i];
-
-            if (itemData == null || itemData.item == null)
-                continue;
-
-            MerchantItemRowUI row = Instantiate(merchantRowPrefab, merchantContentRoot);
-            bool isSelected = serviceDeskManager.SelectedMerchantMaterialItem == itemData;
-
-            row.Setup(
-                itemData.item.icon,
-                itemData.item.displayName,
-                itemData.finalPrice,
-                typeLabel,
-                itemData.quantity,
-                () => SelectMerchantMaterial(itemData),
-                isSelected);
-
-            spawnedMerchantRows.Add(row.gameObject);
-        }
-    }
-
-    private void ClearMerchantRows()
-    {
-        for (int i = 0; i < spawnedMerchantRows.Count; i++)
-        {
-            if (spawnedMerchantRows[i] != null)
-                Destroy(spawnedMerchantRows[i]);
-        }
-
-        spawnedMerchantRows.Clear();
-    }
-
-    private void RefreshMerchantSelectedItem()
-    {
-        GeneratedMerchantUtilityItem selectedUtility = serviceDeskManager.SelectedMerchantUtilityItem;
-        GeneratedMerchantMaterialItem selectedMaterial = serviceDeskManager.SelectedMerchantMaterialItem;
-
-        Sprite icon = null;
-        string itemName = "Select an item";
-        string priceText = "Price: -";
-        string typeText = string.Empty;
-        bool hasSelection = false;
-
-        if (selectedUtility != null && selectedUtility.item != null)
-        {
-            icon = selectedUtility.item.icon;
-            itemName = selectedUtility.item.itemName;
-            priceText = $"Price: {selectedUtility.finalPrice} C";
-            typeText = selectedUtility.item.category == UtilityCategory.Utility ? "Utility" : "Misc";
-            hasSelection = true;
-        }
-        else if (selectedMaterial != null && selectedMaterial.item != null)
-        {
-            icon = selectedMaterial.item.icon;
-            itemName = selectedMaterial.item.displayName;
-            priceText = $"Price: {selectedMaterial.finalPrice} C";
-            typeText = "Material";
-            hasSelection = true;
-        }
-
-        if (merchantSelectedItemIcon != null)
-        {
-            merchantSelectedItemIcon.sprite = icon;
-            merchantSelectedItemIcon.enabled = icon != null;
-        }
-
-        if (merchantSelectedItemNameText != null)
-            merchantSelectedItemNameText.text = itemName;
-
-        if (merchantSelectedItemPriceText != null)
-            merchantSelectedItemPriceText.text = priceText;
-
-        if (merchantSelectedItemTypeText != null)
-            merchantSelectedItemTypeText.text = typeText;
-
-        bool canAfford = false;
-
-        if (hasSelection)
-        {
-            ShopManager shopManager = FindAnyObjectByType<ShopManager>();
-            if (shopManager != null)
-            {
-                int selectedPrice = selectedUtility != null ? selectedUtility.finalPrice : selectedMaterial.finalPrice;
-                int selectedQuantity = selectedUtility != null ? selectedUtility.quantity : selectedMaterial.quantity;
-
-                canAfford = selectedQuantity > 0 && shopManager.CurrentMoney >= selectedPrice;
-            }
-        }
-
-        if (merchantBuyButton != null)
-            merchantBuyButton.interactable = hasSelection && canAfford;
-    }
-
     private void HideAllSections()
     {
         if (requestSection != null)
@@ -436,9 +227,6 @@ public class ServiceDeskUI : MonoBehaviour
 
         if (dialogueSection != null)
             dialogueSection.SetActive(false);
-
-        if (merchantSection != null)
-            merchantSection.SetActive(false);
 
         if (recruitSection != null)
             recruitSection.SetActive(false);
@@ -532,42 +320,6 @@ public class ServiceDeskUI : MonoBehaviour
             return;
 
         serviceDeskManager.ChooseDialogueOption(choiceIndex);
-        RefreshUI();
-    }
-
-    private void OpenMerchantWares()
-    {
-        if (serviceDeskManager == null || !serviceDeskManager.HasPendingMerchantVisit)
-            return;
-
-        serviceDeskManager.AcceptPendingMerchantVisit();
-        RefreshUI();
-    }
-
-    private void IgnoreMerchant()
-    {
-        if (serviceDeskManager == null || !serviceDeskManager.HasPendingMerchantVisit)
-            return;
-
-        serviceDeskManager.DeclinePendingMerchantVisit();
-        RefreshUI();
-    }
-
-    private void BuyMerchantItem()
-    {
-        if (serviceDeskManager == null || !serviceDeskManager.HasPendingMerchantVisit)
-            return;
-
-        serviceDeskManager.BuySelectedMerchantItem();
-        RefreshUI();
-    }
-
-    private void GoodbyeMerchant()
-    {
-        if (serviceDeskManager == null || !serviceDeskManager.HasPendingMerchantVisit)
-            return;
-
-        serviceDeskManager.FinishMerchantVisit();
         RefreshUI();
     }
 
@@ -727,21 +479,4 @@ public class ServiceDeskUI : MonoBehaviour
         }
     }
 
-    private void SelectMerchantUtility(GeneratedMerchantUtilityItem itemData)
-    {
-        if (serviceDeskManager == null || itemData == null)
-            return;
-
-        serviceDeskManager.SelectMerchantUtilityItem(itemData);
-        RefreshUI();
-    }
-
-    private void SelectMerchantMaterial(GeneratedMerchantMaterialItem itemData)
-    {
-        if (serviceDeskManager == null || itemData == null)
-            return;
-
-        serviceDeskManager.SelectMerchantMaterialItem(itemData);
-        RefreshUI();
-    }
 }
